@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿namespace WinformsFileClient;
 
-namespace FileClient;
+using System.Collections;
 
 // This structure represents the folder structure
 public class Tree : IEnumerable<Tree>

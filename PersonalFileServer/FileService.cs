@@ -1,5 +1,6 @@
 ﻿namespace FileServer;
 
+using Common;
 using Net.Connection.Clients.Tcp;
 using Net.Connection.Servers;
 using System.Collections.Concurrent;
@@ -86,7 +87,7 @@ internal class FileService
                         {
                             await using (FileStream source = File.OpenRead($"{fpath}.aes"))
                             {
-                                await CryptoServices.DecryptStreamAsync(source, destination, key, key);
+                                await Crypto.DecryptStreamAsync(source, destination, key, key);
                             }
                             destination.Seek(0, SeekOrigin.Begin);
                             await SendFile(destination, c, msg);
@@ -102,7 +103,7 @@ internal class FileService
                         {
                             await using (FileStream destination = File.Create($"{fpath}.aes"))
                             {
-                                await CryptoServices.EncryptStreamAsync(source, destination, key, key);
+                                await Crypto.EncryptStreamAsync(source, destination, key, key);
                             }
                         }
                         Console.WriteLine($"{c.RemoteEndpoint} uploaded {msg.PathRequest}");

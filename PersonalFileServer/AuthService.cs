@@ -1,5 +1,6 @@
 ﻿namespace FileServer;
 
+using Common;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -28,7 +29,7 @@ public class AuthService
         }
         else
         {
-            var enc = new EncryptionPair(CryptoServices.GenerateRandomKey(CryptoServices.KeyLength / 8), CryptoServices.GenerateRandomKey(CryptoServices.IvLength / 8));
+            var enc = new EncryptionPair(Crypto.GenerateRandomKey(Crypto.KeyLength / 8), Crypto.GenerateRandomKey(Crypto.IvLength / 8));
 
             using var file = File.OpenWrite(EncryptionPath);
 
@@ -67,8 +68,8 @@ public class AuthService
     {
         if (users.ContainsKey(username)) return;
 
-        var pHash = CryptoServices.Hash(CryptoServices.Hash(password));
-        var encHash = await CryptoServices.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
+        var pHash = Crypto.Hash(Crypto.Hash(password));
+        var encHash = await Crypto.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
 
         users.Add(username, encHash);
     }
@@ -77,8 +78,8 @@ public class AuthService
     {
         if (!users.ContainsKey(username)) return false;
 
-        var pHash = CryptoServices.Hash(CryptoServices.Hash(password));
-        var encHash = await CryptoServices.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
+        var pHash = Crypto.Hash(Crypto.Hash(password));
+        var encHash = await Crypto.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
 
         return encHash.SequenceEqual(users[username]);
     }
@@ -87,14 +88,14 @@ public class AuthService
     {
         if (!users.ContainsKey(username)) return Array.Empty<byte>();
 
-        var kHash = CryptoServices.Hash(password);
-        var pHash = CryptoServices.Hash(kHash);
-        var encHash = await CryptoServices.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
+        var kHash = Crypto.Hash(password);
+        var pHash = Crypto.Hash(kHash);
+        var encHash = await Crypto.EncryptAESAsync(pHash, encryption.Key, encryption.Iv);
 
         if (!encHash.SequenceEqual(users[username]))
             return Array.Empty<byte>();
 
-        return CryptoServices.KeyFromHash(kHash);
+        return Crypto.KeyFromHash(kHash);
     }
 
     private record struct EncryptionPair(byte[] Key, byte[] Iv);

@@ -1,11 +1,11 @@
-namespace FileClient;
+namespace WinformsFileClient;
 
 using System.Net;
 using Microsoft.VisualBasic;
 using System.Diagnostics;
 using Net.Connection.Clients.Tcp;
 using System.Linq;
-using Net;
+using Common;
 
 public partial class MainForm : Form
 {
@@ -78,7 +78,7 @@ public partial class MainForm : Form
                     _semaphore.Release();
                 }
             }
-
+            
             if (msg.EndOfMessage)
                 current.Dispose();
         }));

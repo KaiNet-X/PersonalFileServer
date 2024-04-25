@@ -1,10 +1,11 @@
-﻿namespace FileClient;
+﻿namespace Common;
 
 using Net.Messages;
 
-internal class FileRequestMessage : MessageBase
+public class FileRequestMessage : MessageBase
 {
     private string _fileName;
+    private string _directory;
 
     public FileRequestType RequestType { get; init; }
     public Guid RequestId { get; init; }
@@ -18,6 +19,13 @@ internal class FileRequestMessage : MessageBase
         get
         {
             return _fileName ??= Path.GetFileName(PathRequest);
+        }
+    }
+    public string Directory
+    {
+        get
+        {
+            return _directory ??= Path.GetDirectoryName(PathRequest);
         }
     }
 }

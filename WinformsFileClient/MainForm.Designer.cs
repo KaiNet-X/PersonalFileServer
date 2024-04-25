@@ -1,4 +1,4 @@
-﻿namespace FileClient
+﻿namespace WinformsFileClient
 {
     partial class MainForm
     {
