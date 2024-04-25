@@ -1,8 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "d0jrvmzSlfZzzSljHb1L1gQAh0LRV15e2t4OKVTnO3E52bdae92ZAGMHaOYKkIhvKTxmujPaEP9mPujbu0SQHQ==",
+  "dgSpecHash": "Lvy5OwBDuQlZ0wJktqYqOwZ1NRo81lq1Fmtwg3b3cVzFE+5726NdANjMM68S0Z+qr6erU380kzyrhYihO1h3rQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\Kai\\source\\repos\\KaiNet-X\\PersonalFileServer\\WinformsFileClient\\WinformsFileClient.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Kai\\.nuget\\packages\\kainet.net\\4.0.1\\kainet.net.4.0.1.nupkg.sha512",
+    "C:\\Users\\Kai\\.nuget\\packages\\messagepack\\2.5.124\\messagepack.2.5.124.nupkg.sha512",
+    "C:\\Users\\Kai\\.nuget\\packages\\messagepack.annotations\\2.5.124\\messagepack.annotations.2.5.124.nupkg.sha512",
+    "C:\\Users\\Kai\\.nuget\\packages\\microsoft.net.stringtools\\17.6.3\\microsoft.net.stringtools.17.6.3.nupkg.sha512",
+    "C:\\Users\\Kai\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

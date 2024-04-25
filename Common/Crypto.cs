@@ -1,11 +1,12 @@
-﻿namespace FileServer;
+﻿namespace Common;
 
 using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-internal static class CryptoServices
+public static class Crypto
 {
     private static Aes _aes = GetAes();
 
@@ -73,6 +74,18 @@ internal static class CryptoServices
     {
         await using CryptoStream cryptoStream = new CryptoStream(source, _aes.CreateDecryptor(key, iv), CryptoStreamMode.Read);
         await cryptoStream.CopyToAsync(destination);
+    }
+
+    public static async Task CompressStreamAsync(Stream source, Stream destination)
+    {
+        await using var compression = new DeflateStream(destination, CompressionMode.Compress);
+        await source.CopyToAsync(compression);
+    }
+
+    public static async Task DeompressStreamAsync(Stream source, Stream destination)
+    {
+        await using var compression = new DeflateStream(source, CompressionMode.Decompress);
+        await source.CopyToAsync(compression);
     }
 
     private static Aes GetAes()
