@@ -17,10 +17,11 @@ C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Deb
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.AssemblyInfo.cs
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.csproj.CoreCompileInputs.cache
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.sourcelink.json
-C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.csproj.CopyComplete
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.dll
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\refint\WinformsFileClient.dll
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.pdb
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.genruntimeconfig.cache
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\ref\WinformsFileClient.dll
 C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.MainForm.resources
+C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\WinformsFileClient.SigninForm.resources
+C:\Users\Kai\source\repos\KaiNet-X\PersonalFileServer\WinformsFileClient\obj\Debug\net8.0-windows\Winforms.6FE0F48C.Up2Date

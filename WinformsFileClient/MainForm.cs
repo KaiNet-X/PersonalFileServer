@@ -15,8 +15,6 @@ public partial class MainForm : Form
         set => Program.Client = value;
     }
 
-    private User _user = new User("Kai", "Kai");
-
     List<Guid> inProgress = new List<Guid>();
 
     private string _path;
@@ -32,7 +30,6 @@ public partial class MainForm : Form
 
         Directory.CreateDirectory(_dir);
 
-        var addr = IPAddress.Parse(Interaction.InputBox("What is a valid server address?", "Address", "127.0.0.1"));
         _client = new Client();
 
         _client.OnAnyMessage(mb =>
@@ -78,7 +75,7 @@ public partial class MainForm : Form
                     _semaphore.Release();
                 }
             }
-            
+
             if (msg.EndOfMessage)
                 current.Dispose();
         }));
@@ -98,32 +95,22 @@ public partial class MainForm : Form
 
         _client.OnDisconnected(obj =>
         {
-            MessageBox.Show("Server disconnected");
+            //MessageBox.Show("Server disconnected");
 
-            Task.Run(() =>
-            {
-                if (!IsDisposed)
-                    Invoke(this.Close);
-            });
+            UpdateUi();
+
+            _ = Connect();
         });
-
-        _client.Connect(addr, 6969, 15, true);
-        _client.SendMessage(new FileRequestMessage { RequestType = FileRequestType.Tree, User = _user });
-
-        cAddr.Text = _client.LocalEndpoint.Address.ToString();
-        cPort.Text = _client.LocalEndpoint.Port.ToString();
-        sAddr.Text = _client.RemoteEndpoint.Address.ToString();
-        sPort.Text = _client.RemoteEndpoint.Port.ToString();
     }
 
     private async void downloadButton_Click(object sender, EventArgs e)
     {
-        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Download, PathRequest = _path, User = _user });
+        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Download, PathRequest = _path, User = Auth.User });
     }
 
     private async void deleteFileButton_Click(object sender, EventArgs e)
     {
-        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Delete, PathRequest = _path, User = _user });
+        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Delete, PathRequest = _path, User = Auth.User });
     }
 
     private async void uploadButton_Click(object sender, EventArgs e)
@@ -132,7 +119,7 @@ public partial class MainForm : Form
         if (ofd.ShowDialog() == DialogResult.OK)
         {
             using FileStream fs = File.OpenRead(ofd.FileName);
-            var newMsg = new FileRequestMessage() { RequestType = FileRequestType.Upload, PathRequest = ofd.SafeFileName, User = _user };
+            var newMsg = new FileRequestMessage() { RequestType = FileRequestType.Upload, PathRequest = ofd.SafeFileName, User = Auth.User };
             newMsg.FileData = new byte[fs.Length];
             await fs.ReadAsync(newMsg.FileData);
             await _client.SendMessageAsync(newMsg);
@@ -188,4 +175,39 @@ public partial class MainForm : Form
 
     private void directoryButton_Click(object sender, EventArgs e) =>
         Process.Start("explorer.exe", _dir);
+
+    private async Task Connect()
+    {
+        var addr = await Task.Run(() => IPAddress.Parse(Interaction.InputBox("What is a valid server address?", "Address", "127.0.0.1")));
+
+        await _client.ConnectAsync(addr, 6969, 15, true);
+        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Tree, User = Auth.User });
+
+        UpdateUi();
+    }
+
+    private async void MainForm_Load(object sender, EventArgs e)
+    {
+        await Connect();
+    }
+
+    void UpdateUi()
+    {
+        if (_client == null || _client.ConnectionState != Net.ConnectionState.CONNECTED)
+        {
+            cAddr.Text = cPort.Text = sAddr.Text = sPort.Text = "NONE";
+            connectedLabel.Text = "false";
+            downloadButton.Enabled = uploadButton.Enabled = deleteFileButton.Enabled = false;
+        }
+
+        cAddr.Text = _client?.LocalEndpoint.Address.ToString();
+        cPort.Text = _client?.LocalEndpoint.Port.ToString();
+        sAddr.Text = _client?.RemoteEndpoint.Address.ToString();
+        sPort.Text = _client?.RemoteEndpoint.Port.ToString();
+        connectedStatus.Text = "true";
+        downloadButton.Enabled = uploadButton.Enabled = deleteFileButton.Enabled = true;
+    }
+
+    string Default(string? value, string defaultValue) =>
+        value == null ? defaultValue : value;
 }
