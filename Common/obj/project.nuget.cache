@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "9UPQ8XCsrNjpjHXzZ3T8z4WvdZjZgbrFHNyeJlll+nrN027YMXbQ4zg4ypy9E8oHw2OFE7E6zgR8KNuETckYRw==",
+  "dgSpecHash": "j9MJ4oxMPMHe2w7TtzrteEtR3SBD1upqvMnWDctFWCJ9/GSXv1YAGnOYPs76SjHdnA1LaQhKpRv64QFoGxs20g==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kai\\source\\repos\\KaiNet-X\\PersonalFileServer\\Common\\Common.csproj",
+  "projectFilePath": "/home/kai/Documents/PersonalFileServer/Common/Common.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Kai\\.nuget\\packages\\kainet.net\\4.0.1\\kainet.net.4.0.1.nupkg.sha512",
-    "C:\\Users\\Kai\\.nuget\\packages\\messagepack\\2.5.124\\messagepack.2.5.124.nupkg.sha512",
-    "C:\\Users\\Kai\\.nuget\\packages\\messagepack.annotations\\2.5.124\\messagepack.annotations.2.5.124.nupkg.sha512",
-    "C:\\Users\\Kai\\.nuget\\packages\\microsoft.net.stringtools\\17.6.3\\microsoft.net.stringtools.17.6.3.nupkg.sha512",
-    "C:\\Users\\Kai\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+    "/home/kai/.nuget/packages/kainet.net/4.0.1/kainet.net.4.0.1.nupkg.sha512",
+    "/home/kai/.nuget/packages/messagepack/2.5.124/messagepack.2.5.124.nupkg.sha512",
+    "/home/kai/.nuget/packages/messagepack.annotations/2.5.124/messagepack.annotations.2.5.124.nupkg.sha512",
+    "/home/kai/.nuget/packages/microsoft.net.stringtools/17.6.3/microsoft.net.stringtools.17.6.3.nupkg.sha512",
+    "/home/kai/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }
