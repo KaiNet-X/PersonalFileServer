@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PersonalFileServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4181dea1f24b4ce8cc96c3b99ed58a9be0b5cb01")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d55f733811fe56fe4dfe14960de30bfa0f98f29")]
 [assembly: System.Reflection.AssemblyProductAttribute("PersonalFileServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PersonalFileServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
