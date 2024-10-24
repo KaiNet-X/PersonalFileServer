@@ -2,9 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:FileClient.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="FileClient.Views.ConnectionInfo">
-  <StackPanel>
-
-  </StackPanel>
+             x:Class="FileClient.Views.ConnectionInfo"
+             x:DataType="vm:ConnectionInfoViewModel">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <TextBlock Text="Server address" Grid.Column="0" />
+    <TextBlock Text="{Binding ServerAddress}" Grid.Column="1" />
+    <TextBlock Text="Server port" Grid.Column="0" />
+    <TextBlock Text="{Binding ServerPort}" Grid.Column="1" />
+  </Grid>
 </UserControl>

@@ -1,8 +1,7 @@
 namespace FileClient.ViewModels;
-using System.Net;
 
 public class ConnectionInfoViewModel : ViewModelBase
 {
-    public string IPAddress address;
-    
+    public string ServerAddress { get; set; }
+    public short ServerPort { get; set; }
 }

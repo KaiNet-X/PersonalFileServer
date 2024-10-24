@@ -3,12 +3,11 @@ using Net;
 using Net.Connection.Clients.Tcp;
 using Net.Connection.Servers;
 using System.Net;
-
+;
 // NOTE: This doesn't work for large files. For that, you would have to send the file in multiple segments and reassemble it on the client
 
 const int PORT = 6969;
-
-var workingDirectory = @$"{Directory.GetCurrentDirectory()}\Files";
+var workingDirectory = @$"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
 
 var authService = new AuthService();
 await authService.LoadUsersAsync();
