@@ -6,6 +6,9 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.ConnectionPicker"
              x:DataType="vm:ConnectionPickerViewModel">
+  <UserControl.DataContext>
+    <vm:ConnectionPickerViewModel />
+  </UserControl.DataContext>
   <StackPanel>
     <TextBlock>Server address</TextBlock>
     <TextBox Text="{Binding ServerAddress}" />

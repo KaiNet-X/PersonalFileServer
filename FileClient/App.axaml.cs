@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using FileClient.ViewModels;
 using FileClient.Views;
+using KaiNet.Net;
 
 namespace FileClient;
 
@@ -22,7 +23,9 @@ public partial class App : Application
                 DataContext = new MainWindowViewModel(),
             };
         }
-
+        var cl = new Client();
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<IAppService,
         base.OnFrameworkInitializationCompleted();
     }
 }
