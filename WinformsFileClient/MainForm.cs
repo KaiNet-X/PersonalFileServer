@@ -178,12 +178,20 @@ public partial class MainForm : Form
 
     private async Task Connect()
     {
-        var addr = await Task.Run(() => IPAddress.Parse(Interaction.InputBox("What is a valid server address?", "Address", "127.0.0.1")));
+        try
+        {
+            var addr = await Task.Run(() => IPAddress.Parse(Interaction.InputBox("What is a valid server address?", "Address", "127.0.0.1")));
 
-        await _client.ConnectAsync(addr, 6969, 15, true);
-        await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Tree, User = Auth.User });
+            await _client.ConnectAsync(addr, 6969, 15, true);
+            await _client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Tree, User = Auth.User });
 
-        UpdateUi();
+            UpdateUi();
+
+        }
+        catch (Exception ex)
+        {
+
+        }
     }
 
     private async void MainForm_Load(object sender, EventArgs e)

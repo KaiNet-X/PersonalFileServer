@@ -14,9 +14,11 @@ internal static class Program
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
+        
         if (Auth.TryLoadUser().Result)
-            Application.Run(new MainForm());
+            new MainForm().Show();
         else
-            Application.Run(new SigninForm());
+            new SigninForm().Show();
+        Application.Run();
     }
 }

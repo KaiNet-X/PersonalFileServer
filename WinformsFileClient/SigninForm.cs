@@ -21,7 +21,8 @@ public partial class SigninForm : Form
     {
         if (userTextBox.Text.Length > 0 && pwdTextBox.Text.Length > 0) 
         {
-            await Auth.SetUser(new User(userTextBox.Text, Convert.ToBase64String(Crypto.Hash(pwdTextBox.Text))));
+            //await Auth.SetUser(new User(userTextBox.Text, Convert.ToBase64String(Crypto.Hash(pwdTextBox.Text))));
+            await Auth.SetUser(new User(userTextBox.Text, pwdTextBox.Text));
             var main = new MainForm();
             main.Show();
             Close();

@@ -30,6 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\FileTree.axaml.cs">
+      <DependentUpon>FileTree.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Signin.axaml.cs">
       <DependentUpon>Signin.axaml</DependentUpon>
     </Compile>

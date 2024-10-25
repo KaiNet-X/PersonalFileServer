@@ -7,13 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 using System;
 using System.Net;
-using System.Windows.Input;
 
 namespace FileClient.Views;
 
 public partial class ConnectionPicker : UserControl
 {
-    private static readonly DirectProperty<ConnectionPicker, Action> onConnectProperty =
+    public static readonly DirectProperty<ConnectionPicker, Action> OnConnectProperty =
         AvaloniaProperty.RegisterDirect<ConnectionPicker, Action>(
             nameof(OnConnect),
             c => c.OnConnect,
@@ -30,8 +29,6 @@ public partial class ConnectionPicker : UserControl
         get => _onConnect; 
         set => SetAndRaise(OnConnectProperty, ref _onConnect, value); 
     }
-
-    public static DirectProperty<ConnectionPicker, Action> OnConnectProperty => onConnectProperty;
 
     private readonly Client client;
 
