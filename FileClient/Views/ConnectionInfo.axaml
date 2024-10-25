@@ -11,9 +11,13 @@
       <ColumnDefinition Width="*" />
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
+	  <Grid.RowDefinitions>
+		  <RowDefinition>auto</RowDefinition>
+		  <RowDefinition>auto</RowDefinition>
+	  </Grid.RowDefinitions>
     <TextBlock Text="Server address" Grid.Column="0" />
     <TextBlock Text="{Binding ServerAddress}" Grid.Column="1" />
-    <TextBlock Text="Server port" Grid.Column="0" />
-    <TextBlock Text="{Binding ServerPort}" Grid.Column="1" />
+    <TextBlock Text="Server port" Grid.Column="0" Grid.Row="1"/>
+    <TextBlock Text="{Binding ServerPort}" Grid.Column="1" Grid.Row="1"/>
   </Grid>
 </UserControl>

@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "KaiNet.Net/4.0.1": {
+      "KaiNet.Net/4.0.2": {
         "type": "package",
         "dependencies": {
           "MessagePack": "2.5.124"
@@ -94,14 +94,15 @@
     }
   },
   "libraries": {
-    "KaiNet.Net/4.0.1": {
-      "sha512": "gfEYhKCGe8NFS3lZifZzs5RalN20CV2L82c/XwcGvkeMCYdyAfNB/Ezf07A5ahPmK1zg8WBVkwkId1D61gbOpA==",
+    "KaiNet.Net/4.0.2": {
+      "sha512": "/pZ0Snr0VCClJxknvrzNiPZDwYNslx31Xdm0etB2/QDusZwGes8CHwLHTW/TAdm92vxwPgXNEcxtLvTaYgk6ZQ==",
       "type": "package",
-      "path": "kainet.net/4.0.1",
+      "path": "kainet.net/4.0.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "kainet.net.4.0.1.nupkg.sha512",
+        "Readme.md",
+        "kainet.net.4.0.2.nupkg.sha512",
         "kainet.net.nuspec",
         "lib/net8.0/Net.dll",
         "lib/net8.0/Net.xml"
@@ -198,36 +199,44 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "Common >= 1.0.0",
-      "KaiNet.Net >= 4.0.1"
+      "KaiNet.Net >= 4.0.2"
     ]
   },
   "packageFolders": {
-    "/home/kai/.nuget/packages/": {}
+    "C:\\Users\\Kai\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/kai/Documents/PersonalFileServer/PersonalFileServer/PersonalFileServer.csproj",
+      "projectUniqueName": "C:\\Users\\Kai\\Documents\\PersonalFileServer\\PersonalFileServer\\PersonalFileServer.csproj",
       "projectName": "PersonalFileServer",
-      "projectPath": "/home/kai/Documents/PersonalFileServer/PersonalFileServer/PersonalFileServer.csproj",
-      "packagesPath": "/home/kai/.nuget/packages/",
-      "outputPath": "/home/kai/Documents/PersonalFileServer/PersonalFileServer/obj/",
+      "projectPath": "C:\\Users\\Kai\\Documents\\PersonalFileServer\\PersonalFileServer\\PersonalFileServer.csproj",
+      "packagesPath": "C:\\Users\\Kai\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Kai\\Documents\\PersonalFileServer\\PersonalFileServer\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/home/kai/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Kai\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/kai/Documents/PersonalFileServer/Common/Common.csproj": {
-              "projectPath": "/home/kai/Documents/PersonalFileServer/Common/Common.csproj"
+            "C:\\Users\\Kai\\Documents\\PersonalFileServer\\Common\\Common.csproj": {
+              "projectPath": "C:\\Users\\Kai\\Documents\\PersonalFileServer\\Common\\Common.csproj"
             }
           }
         }
@@ -236,6 +245,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -244,7 +258,7 @@
         "dependencies": {
           "KaiNet.Net": {
             "target": "Package",
-            "version": "[4.0.1, )"
+            "version": "[4.0.2, )"
           }
         },
         "imports": [
@@ -263,7 +277,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.108/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -9,20 +9,20 @@
       "PersonalFileServer/1.0.0": {
         "dependencies": {
           "Common": "1.0.0",
-          "KaiNet.Net": "4.0.1"
+          "KaiNet.Net": "4.0.2"
         },
         "runtime": {
           "PersonalFileServer.dll": {}
         }
       },
-      "KaiNet.Net/4.0.1": {
+      "KaiNet.Net/4.0.2": {
         "dependencies": {
           "MessagePack": "2.5.124"
         },
         "runtime": {
           "lib/net8.0/Net.dll": {
-            "assemblyVersion": "4.0.1.0",
-            "fileVersion": "4.0.1.0"
+            "assemblyVersion": "4.0.2.0",
+            "fileVersion": "4.0.2.0"
           }
         }
       },
@@ -58,10 +58,13 @@
       "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
       "Common/1.0.0": {
         "dependencies": {
-          "KaiNet.Net": "4.0.1"
+          "KaiNet.Net": "4.0.2"
         },
         "runtime": {
-          "Common.dll": {}
+          "Common.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }
@@ -72,12 +75,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "KaiNet.Net/4.0.1": {
+    "KaiNet.Net/4.0.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-gfEYhKCGe8NFS3lZifZzs5RalN20CV2L82c/XwcGvkeMCYdyAfNB/Ezf07A5ahPmK1zg8WBVkwkId1D61gbOpA==",
-      "path": "kainet.net/4.0.1",
-      "hashPath": "kainet.net.4.0.1.nupkg.sha512"
+      "sha512": "sha512-/pZ0Snr0VCClJxknvrzNiPZDwYNslx31Xdm0etB2/QDusZwGes8CHwLHTW/TAdm92vxwPgXNEcxtLvTaYgk6ZQ==",
+      "path": "kainet.net/4.0.2",
+      "hashPath": "kainet.net.4.0.2.nupkg.sha512"
     },
     "MessagePack/2.5.124": {
       "type": "package",
