@@ -398,5 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 /obj
-User.json
+Users.json
 Enc.json
