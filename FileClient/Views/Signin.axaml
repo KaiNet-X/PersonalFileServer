@@ -12,9 +12,9 @@
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 	  <Grid.RowDefinitions>
-		  <RowDefinition>auto</RowDefinition>
-		  <RowDefinition>auto</RowDefinition>
-		  <RowDefinition>auto</RowDefinition>
+		  <RowDefinition Height="Auto"></RowDefinition>
+		  <RowDefinition Height="Auto"></RowDefinition>
+		  <RowDefinition Height="Auto"></RowDefinition>
 	  </Grid.RowDefinitions>
     <TextBlock Text="Username" Grid.Column="0" />
     <TextBox Text="{Binding Username}" Grid.Column="1" />

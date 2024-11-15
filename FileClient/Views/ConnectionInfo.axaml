@@ -12,8 +12,8 @@
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 	  <Grid.RowDefinitions>
-		  <RowDefinition>auto</RowDefinition>
-		  <RowDefinition>auto</RowDefinition>
+		  <RowDefinition Height="Auto"></RowDefinition>
+		  <RowDefinition Height="Auto"></RowDefinition>
 	  </Grid.RowDefinitions>
     <TextBlock Text="Server address" Grid.Column="0" />
     <TextBlock Text="{Binding ServerAddress}" Grid.Column="1" />

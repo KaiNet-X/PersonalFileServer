@@ -400,3 +400,5 @@ FodyWeavers.xsd
 /obj
 Users.json
 Enc.json
+*/bin
+*/obj
