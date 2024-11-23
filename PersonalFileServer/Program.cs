@@ -3,6 +3,7 @@ using Net;
 using Net.Connection.Clients.Tcp;
 using Net.Connection.Servers;
 using System.Net;
+using ConnectionState = FileServer.ConnectionState;
 
 // NOTE: This doesn't work for large files. For that, you would have to send the file in multiple segments and reassemble it on the client
 
@@ -15,6 +16,8 @@ await authService.LoadUsersAsync();
 if (!Directory.Exists(workingDirectory))
     Directory.CreateDirectory(workingDirectory);
 
+var fileService = new FileService(authService, workingDirectory);
+
 var addresses = await Dns.GetHostAddressesAsync(Dns.GetHostName());
 
 var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(IPAddress.IPv6Any, PORT)]
@@ -25,6 +28,9 @@ var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(
     MaxClientConnections = 5,
     ClientRequiresWhitelistedTypes = true
 });
+
+
+var connections = new List<ConnectionState>();
 
 server.OnClientConnected(OnConnect);
 
@@ -39,19 +45,24 @@ server.Start();
 
 AppDomain.CurrentDomain.ProcessExit += OnKill;
 
-var fileService = new FileService(server, authService, workingDirectory);
-
 foreach (var address in addresses)
     Console.WriteLine($"Hosting on {address}:{PORT}");
 
 bool exiting = false;
 do
 {
-    switch (Console.ReadLine()?.ToUpper())
+    var value = Console.ReadLine()?.ToUpper();
+    switch (value)
     {
         case "EXIT":
             exiting = true;
             break;
+        case "LIST USERS":
+            foreach (var (uname, _) in  authService.Users)
+            {
+                Console.WriteLine(uname);
+            }
+        break;
         default:
             Console.WriteLine("Unknown command");
             break;
@@ -62,11 +73,13 @@ await server.ShutDownAsync();
 
 void OnConnect(ServerClient sc)
 {
+    connections.Add(new ConnectionState(sc, authService, fileService));
     Console.WriteLine($"{sc.LocalEndpoint} connected");
 }
 
 void OnDisconnect (DisconnectionInfo info, ServerClient sc)
 {
+    connections.Remove(connections.FirstOrDefault(c => c.Client == sc));
     Console.WriteLine($"{sc.LocalEndpoint} {info.Reason}");
 }
 

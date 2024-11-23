@@ -7,22 +7,18 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 
-internal class FileService
+public class FileService
 {
-    private readonly TcpServer server;
     private readonly AuthService authService;
     private readonly string workingDirectory;
     private readonly ConcurrentDictionary<Guid, Stream> OpenFiles = new();
 
-    public FileService(TcpServer server, AuthService authService, string workingDirectory)
+    public FileService(AuthService authService, string workingDirectory)
     {
-        ArgumentNullException.ThrowIfNull(server);
         ArgumentNullException.ThrowIfNull(authService);
 
-        this.server = server;
         this.authService = authService;
         this.workingDirectory = workingDirectory;
-        this.server.OnMessage<FileRequestMessage>(HandleFileRequest);
     }
 
     public async Task SendFile(Stream file, ServerClient client, FileRequestMessage msg)
@@ -54,7 +50,7 @@ internal class FileService
         }
     }
 
-    async void HandleFileRequest(FileRequestMessage msg, ServerClient c)
+    public async Task HandleFileRequest(FileRequestMessage msg, ServerClient c)
     {
         var key = await authService.GetUserKeyAsync(msg.User.UserName, msg.User.Password);
 

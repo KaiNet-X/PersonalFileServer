@@ -1,4 +1,6 @@
-﻿namespace FileServer;
+﻿using System.Collections.Immutable;
+
+namespace FileServer;
 
 using Common;
 using System.Collections.Generic;
@@ -12,6 +14,8 @@ public class AuthService
     private readonly string EncryptionPath;
     private Dictionary<string, byte[]> users;
 
+    public ImmutableDictionary<string, byte[]> Users { get; private set;  }
+    
     public AuthService()
     {
         PasswordPath = $@"{Directory.GetCurrentDirectory()}/Users.json";
@@ -54,7 +58,8 @@ public class AuthService
         file ??= File.OpenRead(PasswordPath);
 
         users = await JsonSerializer.DeserializeAsync<Dictionary<string, byte[]>>(file);
-
+        Users = users.ToImmutableDictionary();
+        
         await file.DisposeAsync();
     }
 
