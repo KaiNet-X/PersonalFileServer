@@ -29,7 +29,7 @@ public class AuthService
                 await using var file = File.OpenRead(UserConfig);
                 using var binSerializer = new BinaryReader(file);
                 var uname = binSerializer.ReadString();
-                var phash = binSerializer.ReadString();
+                var phash = Convert.FromBase64String(binSerializer.ReadString());
                 User = new User(uname, phash);
                 return true;
             }
@@ -38,20 +38,20 @@ public class AuthService
         return false;
     }
 
-    public void SetUser(User user)
+    public void SetUser(string username, string password)
     {
         // Don't want to save the password or first hash on the system or send it to the server
-        var hash2 = BitConverter.ToString( Crypto.Hash(Crypto.Hash(user.Password)));
+        var hash2 = Crypto.Hash(Crypto.Hash(password));
         
-        User = user with { Password = hash2 };
+        User = new User(username, hash2);
     }
 
     public async Task SaveUserAsync()
     {
         await using var file = File.Create(UserConfig);
         using var binWriter = new BinaryWriter(file);
-        binWriter.Write(User.UserName);
-        binWriter.Write(User.Password);
+        binWriter.Write(User.Username);
+        binWriter.Write(Convert.ToBase64String(User.Password));
     }
     
     public void RemoveUser()

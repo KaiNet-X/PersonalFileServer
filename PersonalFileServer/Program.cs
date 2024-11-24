@@ -63,6 +63,8 @@ do
                 ConsoleManager.QueueLine(uname);
             }
         break;
+        case null:
+            break;
         default:
             ConsoleManager.QueueLine("Unknown command");
             break;

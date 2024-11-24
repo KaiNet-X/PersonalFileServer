@@ -1,3 +1,3 @@
 ﻿namespace Common;
 
-public record struct User(string UserName, string Password);
+public record struct User(string Username, byte[] Password);

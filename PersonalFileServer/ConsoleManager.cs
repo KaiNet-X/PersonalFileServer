@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace FileServer;
 
@@ -12,6 +13,16 @@ public static class ConsoleManager
     {
         messages.Enqueue(line);
         WriteAll();
+    }
+
+    private static Task QueueNextAsync()
+    {
+        return Task.Run(() =>
+        {
+            var result = Console.ReadLine();
+            commands.Enqueue(result);
+            return Task.CompletedTask;
+        });
     }
 
     private static async Task WriteAll()
@@ -31,33 +42,18 @@ public static class ConsoleManager
         }
 
     }
-
-    private static void ReadNext()
-    {
-        
-    }
     
-    public static async Task<char> PromptKeyAsync(string prompt)
-    {
-        try
-        {
-            await _semaphore.WaitAsync();
-            Console.WriteLine(prompt);
-            return Console.ReadKey().KeyChar;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
     public static async Task<string> Prompt(string prompt)
     {
         try
         {
             await _semaphore.WaitAsync();
             Console.WriteLine(prompt);
-            return Console.ReadLine();
+            if (commands.TryDequeue(out var command))
+                return command;
+            await QueueNextAsync();
+            commands.TryDequeue(out command);
+            return command;
         }
         finally
         {
@@ -65,20 +61,50 @@ public static class ConsoleManager
         }
     }
 
-    public static async Task<string?> GetNextCommand(int? timeout = null)
+    public static async Task<string?> GetNextCommand()
     {
+        if (commands.TryDequeue(out var command))
+            return command;
+        
         try
         {
-            if (timeout.HasValue)
-                await _semaphore.WaitAsync(timeout.Value);
-            else
-                await _semaphore.WaitAsync();
-
-            return Console.ReadLine();
+            await _semaphore.WaitAsync();
+            await QueueNextAsync();
+            commands.TryDequeue(out command);
+            return command;
         }
         finally
         {
             _semaphore.Release();
         }
     }
+    public static async Task<string?> GetNextCommand(int timeout)
+    {
+        var timer = Stopwatch.StartNew();
+        if (commands.TryDequeue(out var command))
+            return command;
+        
+        try
+        {
+            await _semaphore.WaitAsync(timeout);
+            timer.Stop();
+            if (timer.ElapsedMilliseconds > timeout)
+                return null;
+            
+            var tasks = new []
+            {
+                QueueNextAsync(),
+                Task.Delay(timeout - (int)timer.ElapsedMilliseconds)
+            };
+
+            await Task.WhenAny(tasks);
+            commands.TryDequeue(out command);
+            return command;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
 }

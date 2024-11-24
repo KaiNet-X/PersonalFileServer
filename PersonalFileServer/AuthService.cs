@@ -69,7 +69,7 @@ public class AuthService
         await JsonSerializer.SerializeAsync(file, users);
     }
 
-    public async Task AddUser(string username, string password)
+    public async Task AddUser(string username, byte[] password)
     {
         if (users.ContainsKey(username)) return;
 
@@ -79,7 +79,7 @@ public class AuthService
         users.Add(username, encHash);
     }
 
-    public async Task<bool> CheckUserAsync(string username, string password)
+    public async Task<bool> CheckUserAsync(string username, byte[] password)
     {
         if (!users.ContainsKey(username)) return false;
 
@@ -89,7 +89,7 @@ public class AuthService
         return encHash.SequenceEqual(users[username]);
     }
 
-    public async Task<byte[]> GetUserKeyAsync(string username, string password)
+    public async Task<byte[]> GetUserKeyAsync(string username, byte[] password)
     {
         if (!users.ContainsKey(username)) return Array.Empty<byte>();
 

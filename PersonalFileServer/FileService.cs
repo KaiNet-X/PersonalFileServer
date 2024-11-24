@@ -52,15 +52,15 @@ public class FileService
 
     public async Task HandleFileRequest(FileRequestMessage msg, ServerClient c)
     {
-        var key = await authService.GetUserKeyAsync(msg.User.UserName, msg.User.Password);
+        var key = await authService.GetUserKeyAsync(msg.User.Username, msg.User.Password);
 
         if (key.Length == 0)
         {
-            Console.WriteLine($"Authentication error on {c.RemoteEndpoint.Address}, name: {msg.User.UserName}");
+            Console.WriteLine($"Authentication error on {c.RemoteEndpoint.Address}, name: {msg.User.Username}");
             return;
         }
 
-        var dir = @$"{workingDirectory}\{msg.User.UserName}\{msg.Directory}".PathFormat();
+        var dir = @$"{workingDirectory}\{msg.User.Username}\{msg.Directory}".PathFormat();
 
         if (dir.Contains("../") || dir.Contains(@"..\"))
         {
@@ -117,7 +117,7 @@ public class FileService
                     }
                     break;
             }
-            await SendTree(c, msg.User.UserName);
+            await SendTree(c, msg.User.Username);
 
         }
         catch (Exception e)

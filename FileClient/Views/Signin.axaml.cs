@@ -18,6 +18,20 @@ public partial class Signin : UserControl
             (c, val) => c.SignInComplete = val,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
+    public static readonly DirectProperty<Signin, string> UsernameProperty =
+        AvaloniaProperty.RegisterDirect<Signin, string>(
+            nameof(Username),
+            c => c.Username,
+            (c, val) => c.Username = val,
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly DirectProperty<Signin, string> PasswordProperty =
+        AvaloniaProperty.RegisterDirect<Signin, string>(
+            nameof(Password),
+            c => c.Password,
+            (c, val) => c.Password = val,
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
     public string SignInUp { get; set; } = "Sign in";
     public string Username { get; set; }
     public string Password { get; set; }
@@ -44,27 +58,11 @@ public partial class Signin : UserControl
 
     public async Task SignIn()
     {
-        _client.OnReceive<AuthenticationReply>(OnAuthReply);
-        _authService.SetUser(new User(Username, Password));
+        _authService.SetUser(Username, Password);
         
         if (SignInUp == "Sign in")
-            await _client.SendObjectAsync(new AuthenticationRequest(Username, Password));
+            await _client.SendObjectAsync(new AuthenticationRequest(Username, _authService.User.Password));
         else
-            await _client.SendObjectAsync(new UserCreateRequest(Username, Password));
-    }
-
-    private async Task OnAuthReply(AuthenticationReply reply)
-    {
-        if (reply.Result)
-        {
-            await _authService.SaveUserAsync();
-            if (SignInComplete != null) 
-                await SignInComplete();
-        }
-        else
-        {
-            Username = string.Empty;
-            Password = string.Empty;
-        }
+            await _client.SendObjectAsync(new UserCreateRequest(Username, _authService.User.Password));
     }
 }

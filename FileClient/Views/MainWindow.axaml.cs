@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Common;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
         client = Extensions1.ServiceProvider.GetService<Client>();
         authService = Extensions1.ServiceProvider.GetService<AuthService>();
 
+        client.OnReceive<AuthenticationReply>(OnAuthReply);
         client.OnReceive<Tree>(t =>
         {
             Dispatcher.UIThread.Post(() =>
@@ -36,22 +38,33 @@ public partial class MainWindow : Window
     {
         Stack.Children.Clear();
         if (!await authService.TryLoadUserAsync())
-        {
-            var signInUp = new SignInOrUp(ReactiveCommand.Create(() => NavSignIn("Sign in")), ReactiveCommand.Create(() => NavSignIn("Sign up")));
-            Stack.Children.Add(signInUp);
-        }
+            ShowSignin();
         else
-        {
-            Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
-            Stack.Children.Add(fileTree = new FileTree());
-            await client.SendMessageAsync(new FileRequestMessage
-                {
-                    RequestType = FileRequestType.Tree,
-                    User = authService.User
-                });
-        }
+            await client.SendObjectAsync(new AuthenticationRequest(authService.User.Username, authService.User.Password));
     }
 
+    private async Task OnAuthReply(AuthenticationReply reply)
+    {
+        if (reply.Result)
+        {
+            await authService.SaveUserAsync();
+            await SignInComplete();
+            client.UnregisterReceive<AuthenticationReply>();
+        }
+        else
+            ShowSignin();
+    }
+
+    void ShowSignin()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var signInUp = new SignInOrUp(ReactiveCommand.Create(() => NavSignIn("Sign in")), ReactiveCommand.Create(() => NavSignIn("Sign up")));
+            Stack.Children.Clear();
+            Stack.Children.Add(signInUp);
+        });
+    }
+    
     public void NavSignIn(string title)
     {
         Stack.Children.Clear();
@@ -63,9 +76,12 @@ public partial class MainWindow : Window
     
     public async Task SignInComplete()
     {
-        Stack.Children.Clear();
-        Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
-        Stack.Children.Add(fileTree = new FileTree());
+        Dispatcher.UIThread.Post(() =>
+        {
+            Stack.Children.Clear();
+            Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
+            Stack.Children.Add(fileTree = new FileTree());
+        });
 
         await client.SendMessageAsync(new FileRequestMessage
         {
@@ -90,6 +106,7 @@ public partial class MainWindow : Window
     private void SignOut()
     {
         client.Close();
+        client.OnReceive<AuthenticationReply>(OnAuthReply);
         authService.RemoveUser();
         Stack.Children.Clear();
         var picker = new ConnectionPicker();

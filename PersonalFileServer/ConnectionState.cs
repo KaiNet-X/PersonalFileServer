@@ -25,12 +25,15 @@ public class ConnectionState
     {
         if (!await _authService.CheckUserAsync(request.Username, request.Password))
         {
-            ConsoleManager.QueueLine($"Authentication error on {Client.RemoteEndpoint.Address}, name: {request.Username}");
+            ConsoleManager.QueueLine(
+                $"Authentication error on {Client.RemoteEndpoint.Address}, name: {request.Username}");
+            await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
             return;
         }
         
         Client.UnregisterReceive<AuthenticationRequest>();
         Client.UnregisterReceive<UserCreateRequest>();
+        await Client.SendObjectAsync(new AuthenticationReply(true, null));
 
         Authenticated = true;
     }
@@ -51,14 +54,14 @@ public class ConnectionState
         if (msg.Username == null || msg.Password == null)
         {
             ConsoleManager.QueueLine($"{Client.RemoteEndpoint.Address} requested a new user: username or password is empty!");
-            Client.SendObject(new AuthenticationReply(false, "Username or password is empty"));
+            await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
             return;
         }
 
         if (_authService.Users.ContainsKey(msg.Username))
         {
             ConsoleManager.QueueLine($"{Client.RemoteEndpoint.Address} requested a username that already exists!");
-            Client.SendObject(new AuthenticationReply(false , "User with that username already exists"));
+            await Client.SendObjectAsync(new AuthenticationReply(false , "User with that username already exists"));
             return;
         }
         
@@ -76,10 +79,13 @@ public class ConnectionState
         }
         
         await _authService.AddUser(msg.Username, msg.Password);
+        await _authService.SaveUsersAsync();
+        
+        ConsoleManager.QueueLine($"Added new user: {msg.Username}");
         
         Client.UnregisterReceive<AuthenticationRequest>();
         Client.UnregisterReceive<UserCreateRequest>();
-
+        
         await Client.SendObjectAsync(new AuthenticationReply(true, "User approved"));
 
         Authenticated = true;
