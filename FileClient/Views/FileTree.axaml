@@ -6,8 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.FileTree"
              x:DataType="v:FileTree">
-	<StackPanel>
-		<TextBlock Text="Rendered" />
+	<StackPanel Spacing="10">
 		<TreeView ItemsSource="{Binding Nodes, Mode=TwoWay}" SelectedItem="{Binding SelectedNode}">
 			<TreeView.ItemTemplate>
 				<TreeDataTemplate ItemsSource="{Binding SubNodes, Mode=TwoWay}">
@@ -15,8 +14,10 @@
 				</TreeDataTemplate>
 			</TreeView.ItemTemplate>
 		</TreeView>
-		<Button Click="Upload">Upload</Button>
-		<Button Click="Download">Download</Button>
-		<Button Click="Delete">Delete</Button>
+		<StackPanel Orientation="Horizontal" Spacing="10">
+			<Button Click="Upload">Upload</Button>
+			<Button Click="Download">Download</Button>
+			<Button Click="Delete">Delete</Button>
+		</StackPanel>
 	</StackPanel>
 </UserControl>

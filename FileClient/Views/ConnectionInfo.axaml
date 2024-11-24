@@ -3,23 +3,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:FileClient.ViewModels"
+             xmlns:sg="clr-namespace:SpacedGridControl.Avalonia;assembly=SpacedGridControl.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.ConnectionInfo"
              x:DataType="vm:ConnectionInfoViewModel">
-  <Grid>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="*" />
-      <ColumnDefinition Width="*" />
-    </Grid.ColumnDefinitions>
-	  <Grid.RowDefinitions>
-		    <RowDefinition Height="Auto"></RowDefinition>
-        <RowDefinition Height="Auto"></RowDefinition>
-        <RowDefinition Height="Auto"></RowDefinition>
-      </Grid.RowDefinitions>
-    <TextBlock Text="Server address" Grid.Column="0" />
-    <TextBlock Text="{Binding ServerAddress}" Grid.Column="1" />
-    <TextBlock Text="Server port" Grid.Column="0" Grid.Row="1"/>
-    <TextBlock Text="{Binding ServerPort}" Grid.Column="1" Grid.Row="1"/>
-    <Button Grid.Row="2" Grid.Column="1" Command="{Binding OnSignOutCommand}">Sign out</Button>
-  </Grid>
+    <Grid>
+        <sg:SpacedGrid Margin="10" RowSpacing="10" ColumnSpacing="10">
+          <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"></RowDefinition>
+              <RowDefinition Height="Auto"></RowDefinition>
+              <RowDefinition Height="Auto"></RowDefinition>
+          </Grid.RowDefinitions>
+          <TextBlock Grid.Row="0" Text="Server address" Grid.Column="0" />
+          <TextBlock Grid.Row="0" Text="{Binding ServerAddress}" Grid.Column="1" />
+          <TextBlock Text="Server port" Grid.Column="0" Grid.Row="1"/>
+          <TextBlock Text="{Binding ServerPort}" Grid.Column="1" Grid.Row="1"/>
+          <Button Grid.Row="2" Grid.Column="0" Command="{Binding OnSignOutCommand}">Sign out</Button>
+      </sg:SpacedGrid>
+    </Grid>
 </UserControl>

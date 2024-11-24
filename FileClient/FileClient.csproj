@@ -23,6 +23,7 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.4" />
     <PackageReference Include="KaiNet.Net" Version="4.0.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="SpacedGrid-Avalonia" Version="11.0.0" />
   </ItemGroup>
 
   <ItemGroup>
