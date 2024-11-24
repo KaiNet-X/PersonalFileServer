@@ -17,5 +17,6 @@
 		</TreeView>
 		<Button Click="Upload">Upload</Button>
 		<Button Click="Download">Download</Button>
+		<Button Click="Delete">Delete</Button>
 	</StackPanel>
 </UserControl>

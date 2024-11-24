@@ -62,7 +62,23 @@ public partial class FileTree : UserControl
         if (SelectedNode == null)
             return;
         
-        await client.SendMessageAsync(new FileRequestMessage { RequestType = FileRequestType.Download, PathRequest = SelectedNode.Title, User = authService.User });
+        await client.SendMessageAsync(new FileRequestMessage
+        {
+            RequestType = FileRequestType.Download,
+            PathRequest = SelectedNode.Title
+        });
+    }
+
+    public async void Delete(object sender, RoutedEventArgs e)
+    {
+        if (SelectedNode == null)
+            return;
+        
+        await client.SendMessageAsync(new FileRequestMessage
+        {
+            RequestType = FileRequestType.Delete,
+            PathRequest = SelectedNode.Title
+        });
     }
 }
 

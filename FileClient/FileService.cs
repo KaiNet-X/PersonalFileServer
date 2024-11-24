@@ -14,7 +14,7 @@ public class FileService
     private readonly Client client;
     private readonly AuthService authService;
 
-    private readonly string DownloadDirectory = @$"{Directory.GetCurrentDirectory()}\Files";
+    private readonly string DownloadDirectory = @$"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
 
     private readonly Dictionary<Guid, MemoryStream> DownloadRequests = new Dictionary<Guid, MemoryStream>();
 
@@ -25,38 +25,27 @@ public class FileService
         this.client = client;
         this.authService = authService;
 
-        client.OnMessageReceived<FileRequestMessage>(msg => OnFileMessage(msg));
+        client.OnMessageReceived<FileRequestMessage>(OnFileMessage);
     }
 
     public async Task UploadFileAsync(string path, string name)
     {
         byte[] memBuf;
 
-        var fileStream = new FileStream(path, new FileStreamOptions
+        await using (var fileStream = new FileStream(path, new FileStreamOptions
+                     {
+                         Access = FileAccess.Read,
+                         Mode = FileMode.Open,
+                         Options = FileOptions.SequentialScan
+                     }))
         {
-            Access = FileAccess.Read,
-            Mode = FileMode.Open,
-            Options = FileOptions.SequentialScan
-        });
-
-        await using (var memoryStream = new MemoryStream())
-        {
-            await using var compressionStream = new GZipStream(memoryStream, CompressionLevel.SmallestSize);
-            await fileStream.CopyToAsync(compressionStream);
-            memBuf = memoryStream.ToArray();
+            memBuf = await Crypto.CompressAsync(fileStream);
         }
-
-        if (memBuf.Length > fileStream.Length)
-        {
-            memBuf = new byte[fileStream.Length];
-            fileStream.Seek(0, SeekOrigin.Begin);
-            await fileStream.ReadAsync(memBuf);
-        }
-
-        await fileStream.DisposeAsync();
-
-        var newMsg = new FileRequestMessage() { RequestType = FileRequestType.Upload, PathRequest = name, User = authService.User, FileData = memBuf };
-       
+        
+        memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey, authService.IV);
+        
+        var newMsg = new FileRequestMessage { RequestType = FileRequestType.Upload, PathRequest = name, FileData = memBuf };
+        
         await client.SendMessageAsync(newMsg);
     }
 
@@ -86,14 +75,20 @@ public class FileService
         if (msg.EndOfMessage)
         {
             current.Seek(0, SeekOrigin.Begin);
+            
+            var buf = await Crypto.DecryptAESAsync(current, authService.EncKey, authService.IV);
+            
+            buf = await Crypto.DecompressAsync(buf);
 
-            await using (var newFile = File.Create($@"{DownloadDirectory}\{msg.FileName}"))
+            await using (var fileStream =
+                         File.Create($@"{DownloadDirectory}{Path.DirectorySeparatorChar}{msg.FileName}"))
             {
-                await using (var decompress = new GZipStream(current, CompressionMode.Decompress))
+                await using (var memoryStream = new MemoryStream(buf))
                 {
-                    await decompress.CopyToAsync(newFile);
+                    await memoryStream.CopyToAsync(fileStream);
                 }
             }
+            
             DownloadRequests.Remove(msg.RequestId);
         }
     }

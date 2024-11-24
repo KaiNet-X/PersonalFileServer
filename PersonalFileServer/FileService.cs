@@ -2,7 +2,6 @@
 
 using Common;
 using Net.Connection.Clients.Tcp;
-using Net.Connection.Servers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ public class FileService
         {
             var eom = i == max - 1;
 
-            var newMsg = new FileRequestMessage()
+            var newMsg = new FileRequestMessage
             {
                 RequestType = FileRequestType.Upload,
                 PathRequest = fileName,
@@ -50,75 +49,38 @@ public class FileService
         }
     }
 
-    public async Task HandleFileRequest(FileRequestMessage msg, ServerClient c)
+    public async Task HandleFileRequest(FileRequestMessage request, ConnectionState connection)
     {
-        var key = await authService.GetUserKeyAsync(msg.User.Username, msg.User.Password);
+        var directory = @$"{workingDirectory}\{connection.User.Username}\{request.Directory}".PathFormat();
 
-        if (key.Length == 0)
+        if (directory.Contains("../") || directory.Contains(@"..\"))
         {
-            Console.WriteLine($"Authentication error on {c.RemoteEndpoint.Address}, name: {msg.User.Username}");
+            Console.WriteLine($"Potential malicious url from {connection.Endpoint}: {request.Directory}");
+            Console.WriteLine(directory);
             return;
         }
-
-        var dir = @$"{workingDirectory}\{msg.User.Username}\{msg.Directory}".PathFormat();
-
-        if (dir.Contains("../") || dir.Contains(@"..\"))
-        {
-            Console.WriteLine($"Potential malicious url from {c.RemoteEndpoint.Address}");
-            Console.WriteLine(dir);
-            return;
-        }
-        var fpath = @$"{dir}\{msg.FileName}".PathFormat();
+        var filePath = @$"{directory}\{request.FileName}".PathFormat();
 
         try
         {
-            switch (msg.RequestType)
+            switch (request.RequestType)
             {
                 case FileRequestType.Download:
-                    {
-                        Console.WriteLine($"{c.RemoteEndpoint} requested {msg.PathRequest}");
-                        Directory.CreateDirectory(@$"{workingDirectory}\temp".PathFormat());
-                        var tempPath = @$"{workingDirectory}\temp\{msg.RequestId}.tmp".PathFormat();
-                        await using (FileStream destination = File.Create(tempPath))
-                        {
-                            await using (FileStream source = File.OpenRead($"{fpath}.aes"))
-                            {
-                                await Crypto.DecryptStreamAsync(source, destination, key, key);
-                            }
-                            destination.Seek(0, SeekOrigin.Begin);
-                            await SendFile(destination, c, msg);
-                        }
-                        File.Delete(tempPath);
-                        Console.WriteLine($"{c.RemoteEndpoint} downloaded {msg.PathRequest}");
-                    }
+                    await HandleDownloadRequestAsync(request, connection, filePath);
                     break;
                 case FileRequestType.Upload:
-                    {
-                        Directory.CreateDirectory(dir);
-                        await using (MemoryStream source = new MemoryStream(msg.FileData))
-                        {
-                            await using (FileStream destination = File.Create($"{fpath}.aes"))
-                            {
-                                await Crypto.EncryptStreamAsync(source, destination, key, key);
-                            }
-                        }
-                        Console.WriteLine($"{c.RemoteEndpoint} uploaded {msg.PathRequest}");
-                    }
+                    await HandleUploadRequestAsync(request, connection, directory, filePath);
                     break;
                 case FileRequestType.Delete:
-                    {
-                        File.Delete(@$"{fpath}.aes".PathFormat());
-                        Console.WriteLine($"{c.RemoteEndpoint} deleted {msg.PathRequest}");
-                    }
+                    await HandleDeleteRequestAsync(request, connection, filePath);
                     break;
                 case FileRequestType.Tree:
                     {
-                        Directory.CreateDirectory(dir);
+                        Directory.CreateDirectory(directory);
                     }
                     break;
             }
-            await SendTree(c, msg.User.Username);
-
+            await SendTree(connection.Client, connection.User.Username);
         }
         catch (Exception e)
         {
@@ -126,16 +88,43 @@ public class FileService
         }
     }
 
-    public Tree GetTree(string dir)
+    private async Task HandleDownloadRequestAsync(FileRequestMessage request, ConnectionState connection, string path)
+    {
+        Console.WriteLine($"{connection.Endpoint} requested {request.PathRequest}");
+        await using (var file = File.OpenRead(path))
+        {
+            await SendFile(file, connection.Client, request);
+        }
+        Console.WriteLine($"{connection.Endpoint} downloaded {request.PathRequest}");
+    }
+
+    private async Task HandleUploadRequestAsync(FileRequestMessage request, ConnectionState connection, string directory, string filePath)
+    {
+        Directory.CreateDirectory(directory);
+        await using (FileStream destination = File.Create(filePath))
+        {
+            destination.WriteAsync(request.FileData);
+        }
+        Console.WriteLine($"{connection.Endpoint} uploaded {request.PathRequest}");
+    }
+
+    private async Task HandleDeleteRequestAsync(FileRequestMessage request, ConnectionState connection, string filePath)
+    {
+        File.Delete(filePath);                             
+        Console.WriteLine($"{connection.Endpoint} deleted {request.PathRequest}");
+        
+    }
+    
+    private Tree GetTree(string dir)
     {
         dir = dir.PathFormat();
-        var tree = new Tree()
+        var tree = new Tree
         {
             Nodes = new List<Tree>()
         };
 
         foreach (var file in Directory.EnumerateFiles(dir))
-            tree.Nodes.Add(new Tree() { Value = file.Split(Path.DirectorySeparatorChar)[^1].Replace(".aes", "") });
+            tree.Nodes.Add(new Tree { Value = file.Split(Path.DirectorySeparatorChar)[^1].Replace(".aes", "") });
 
         foreach (var folder in Directory.EnumerateDirectories(dir))
         {
@@ -148,7 +137,6 @@ public class FileService
 
     private Task SendTree(ServerClient c, string username) {
         var tree = GetTree(@$"{workingDirectory}\{username}".PathFormat());
-        tree.Value = "Root";
         return c.SendObjectAsync(tree);
     }
 }

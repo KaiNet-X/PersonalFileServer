@@ -85,8 +85,7 @@ public partial class MainWindow : Window
 
         await client.SendMessageAsync(new FileRequestMessage
         {
-            RequestType = FileRequestType.Tree,
-            User = authService.User
+            RequestType = FileRequestType.Tree
         });
     }
 

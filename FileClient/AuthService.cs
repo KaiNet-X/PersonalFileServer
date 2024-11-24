@@ -12,6 +12,9 @@ public class AuthService
     public static AuthService Instance => _instance;
 
     public User User { get; private set; }
+    public byte[] EncKey { get; private set; }
+    public byte[] IV { get; private set; }
+    
     private static readonly string UserConfig = $"{Directory.GetCurrentDirectory()}/user.bin";
 
 
@@ -29,8 +32,11 @@ public class AuthService
                 await using var file = File.OpenRead(UserConfig);
                 using var binSerializer = new BinaryReader(file);
                 var uname = binSerializer.ReadString();
+                var encKey = Convert.FromBase64String(binSerializer.ReadString());
                 var phash = Convert.FromBase64String(binSerializer.ReadString());
                 User = new User(uname, phash);
+                EncKey = encKey;
+                IV = EncKey[..16];
                 return true;
             }
             catch { }
@@ -41,9 +47,10 @@ public class AuthService
     public void SetUser(string username, string password)
     {
         // Don't want to save the password or first hash on the system or send it to the server
-        var hash2 = Crypto.Hash(Crypto.Hash(password));
+        EncKey = Crypto.Hash(password);
+        IV = EncKey[..16];
         
-        User = new User(username, hash2);
+        User = new User(username, Crypto.Hash(EncKey));
     }
 
     public async Task SaveUserAsync()
@@ -51,6 +58,7 @@ public class AuthService
         await using var file = File.Create(UserConfig);
         using var binWriter = new BinaryWriter(file);
         binWriter.Write(User.Username);
+        binWriter.Write(Convert.ToBase64String(EncKey));
         binWriter.Write(Convert.ToBase64String(User.Password));
     }
     

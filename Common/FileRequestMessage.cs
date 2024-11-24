@@ -9,7 +9,6 @@ public class FileRequestMessage : MessageBase
 
     public FileRequestType RequestType { get; init; }
     public Guid RequestId { get; init; }
-    public User User { get; init; }
     public bool EndOfMessage { get; init; }
     public byte[] FileData { get; set; }
     public string PathRequest { get; init; }
