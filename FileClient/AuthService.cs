@@ -1,4 +1,6 @@
-﻿namespace FileClient;
+﻿using System;
+
+namespace FileClient;
 
 using Common;
 using System.IO;
@@ -36,12 +38,25 @@ public class AuthService
         return false;
     }
 
-    public async Task SetUser(User user)
+    public void SetUser(User user)
     {
-        User = user;
+        // Don't want to save the password or first hash on the system or send it to the server
+        var hash2 = BitConverter.ToString( Crypto.Hash(Crypto.Hash(user.Password)));
+        
+        User = user with { Password = hash2 };
+    }
+
+    public async Task SaveUserAsync()
+    {
         await using var file = File.Create(UserConfig);
         using var binWriter = new BinaryWriter(file);
-        binWriter.Write(user.UserName);
-        binWriter.Write(user.Password);
+        binWriter.Write(User.UserName);
+        binWriter.Write(User.Password);
+    }
+    
+    public void RemoveUser()
+    {
+        File.Delete(UserConfig);
+        User = default;
     }
 }

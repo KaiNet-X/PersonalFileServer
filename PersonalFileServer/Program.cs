@@ -38,7 +38,7 @@ server.OnDisconnect(OnDisconnect);
 
 server.OnObjectError((eFrame, sc) =>
 {
-    Console.WriteLine($"Potential malicious payload \"{eFrame.TypeName}\" by {sc.RemoteEndpoint}");
+    ConsoleManager.QueueLine($"Potential malicious payload \"{eFrame.TypeName}\" by {sc.RemoteEndpoint}");
 });
 
 server.Start();
@@ -46,12 +46,12 @@ server.Start();
 AppDomain.CurrentDomain.ProcessExit += OnKill;
 
 foreach (var address in addresses)
-    Console.WriteLine($"Hosting on {address}:{PORT}");
+    ConsoleManager.QueueLine($"Hosting on {address}:{PORT}");
 
 bool exiting = false;
 do
 {
-    var value = Console.ReadLine()?.ToUpper();
+    var value = (await ConsoleManager.GetNextCommand(5000))?.ToUpper();
     switch (value)
     {
         case "EXIT":
@@ -60,11 +60,11 @@ do
         case "LIST USERS":
             foreach (var (uname, _) in  authService.Users)
             {
-                Console.WriteLine(uname);
+                ConsoleManager.QueueLine(uname);
             }
         break;
         default:
-            Console.WriteLine("Unknown command");
+            ConsoleManager.QueueLine("Unknown command");
             break;
     }
 } while (!exiting);

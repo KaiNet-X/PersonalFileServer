@@ -12,12 +12,14 @@
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 	  <Grid.RowDefinitions>
-		  <RowDefinition Height="Auto"></RowDefinition>
-		  <RowDefinition Height="Auto"></RowDefinition>
-	  </Grid.RowDefinitions>
+		    <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
     <TextBlock Text="Server address" Grid.Column="0" />
     <TextBlock Text="{Binding ServerAddress}" Grid.Column="1" />
     <TextBlock Text="Server port" Grid.Column="0" Grid.Row="1"/>
     <TextBlock Text="{Binding ServerPort}" Grid.Column="1" Grid.Row="1"/>
+    <Button Grid.Row="2" Grid.Column="1" Command="{Binding OnSignOutCommand}">Sign out</Button>
   </Grid>
 </UserControl>

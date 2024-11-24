@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using ReactiveUI;
 
 namespace FileClient.Views;
 
 public partial class MainWindow : Window
 {
-
     private readonly Client client;
     private readonly AuthService authService;
     private FileTree fileTree = null;
@@ -35,34 +35,42 @@ public partial class MainWindow : Window
     public async void Connected()
     {
         Stack.Children.Clear();
-        Stack.Children.Add(new ConnectionInfo());
         if (!await authService.TryLoadUserAsync())
         {
-            var signin = new Signin();
-            signin.SetValue(Signin.SignInCompleteProperty, SignInComplete);
-            Stack.Children.Add(signin);
+            var signInUp = new SignInOrUp(ReactiveCommand.Create(() => NavSignIn("Sign in")), ReactiveCommand.Create(() => NavSignIn("Sign up")));
+            Stack.Children.Add(signInUp);
         }
         else
         {
+            Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
             Stack.Children.Add(fileTree = new FileTree());
-            await client.SendMessageAsync(new FileRequestMessage()
+            await client.SendMessageAsync(new FileRequestMessage
                 {
                     RequestType = FileRequestType.Tree,
-                    User = authService.User,
+                    User = authService.User
                 });
         }
     }
 
+    public void NavSignIn(string title)
+    {
+        Stack.Children.Clear();
+        var signin = new Signin(client);
+        signin.SignInUp = title;
+        signin.SetValue(Signin.SignInCompleteProperty, SignInComplete);
+        Stack.Children.Add(signin);
+    }
+    
     public async Task SignInComplete()
     {
         Stack.Children.Clear();
-        Stack.Children.Add(new ConnectionInfo());
+        Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
         Stack.Children.Add(fileTree = new FileTree());
 
-        await client.SendMessageAsync(new FileRequestMessage()
+        await client.SendMessageAsync(new FileRequestMessage
         {
             RequestType = FileRequestType.Tree,
-            User = authService.User,
+            User = authService.User
         });
     }
 
@@ -77,5 +85,15 @@ public partial class MainWindow : Window
             nodes.Add(ToNode(node));
 
         return new Node(tree.Value) { SubNodes = nodes };
+    }
+
+    private void SignOut()
+    {
+        client.Close();
+        authService.RemoveUser();
+        Stack.Children.Clear();
+        var picker = new ConnectionPicker();
+        picker.OnConnect = Connected;
+        Stack.Children.Add(picker);
     }
 }
