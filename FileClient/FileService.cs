@@ -33,11 +33,11 @@ public class FileService
         byte[] memBuf;
 
         await using (var fileStream = new FileStream(path, new FileStreamOptions
-                     {
-                         Access = FileAccess.Read,
-                         Mode = FileMode.Open,
-                         Options = FileOptions.SequentialScan
-                     }))
+             {
+                 Access = FileAccess.Read,
+                 Mode = FileMode.Open,
+                 Options = FileOptions.SequentialScan
+             }))
         {
             memBuf = await Crypto.CompressAsync(fileStream);
         }

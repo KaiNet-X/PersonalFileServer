@@ -5,7 +5,9 @@ using FileClient.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 using System;
+using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 
 namespace FileClient.Views;
 
@@ -40,15 +42,33 @@ public partial class ConnectionPicker : UserControl
     
     public async void Ok()
     {
-        if (IPAddress.TryParse(ServerAddress, out var address))
+        if (!IPAddress.TryParse(ServerAddress, out var address))
         {
-            if (await client.ConnectAsync(new IPEndPoint(address, 6969)))
+            try
             {
-                Error = string.Empty;
-                OnConnect?.Invoke();
+                var addresses = await Dns.GetHostAddressesAsync(ServerAddress);
+                if (addresses.Any())
+                    address = addresses.First();
             }
-            else
-                Error = "Could not connect to server";
+            catch
+            {
+                Error = "Unable to resolve server address";
+                return;
+            }
         }
+
+        if (address is null)
+        {
+            Error = "Invalid IP address or Hostname.";
+            return;
+        }
+        if (await client.ConnectAsync(ServerAddress, 6969, 0, true))
+        {
+            Error = string.Empty;
+            OnConnect?.Invoke();
+        }
+        else
+            Error = "Could not connect to server";
+
     }
 }
