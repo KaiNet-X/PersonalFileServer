@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Common;
-using FileClient.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -33,10 +32,10 @@ public partial class Signin : UserControl
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public string SignInUp { get; set; } = "Sign in";
-    public string Username { get; set; }
-    public string Password { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 
-    private Func<Task> _signInComplete;
+    private Func<Task>? _signInComplete;
 
     private readonly Client _client;
     
@@ -53,16 +52,17 @@ public partial class Signin : UserControl
         _client = client;
         InitializeComponent();
         DataContext = this;
-        _authService = Extensions1.ServiceProvider.GetService<AuthService>();
+        _authService = App.ServiceProvider.GetRequiredService<AuthService>();
     }
 
     public async Task SignIn()
     {
         _authService.SetUser(Username, Password);
+        var user = _authService.User.Value;
         
         if (SignInUp == "Sign in")
-            await _client.SendObjectAsync(new AuthenticationRequest(Username, _authService.User.Password));
+            await _client.SendObjectAsync(new AuthenticationRequest(Username, user.Password));
         else
-            await _client.SendObjectAsync(new UserCreateRequest(Username, _authService.User.Password));
+            await _client.SendObjectAsync(new UserCreateRequest(Username, user.Password));
     }
 }

@@ -63,7 +63,7 @@ public class FileService
             await downloadSemaphore.WaitAsync();
             await current.WriteAsync(msg.FileData);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }

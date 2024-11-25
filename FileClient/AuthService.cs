@@ -11,9 +11,9 @@ public class AuthService
     private static readonly AuthService _instance = new AuthService();
     public static AuthService Instance => _instance;
 
-    public User User { get; private set; }
-    public byte[] EncKey { get; private set; }
-    public byte[] IV { get; private set; }
+    public User? User { get; private set; }
+    public byte[]? EncKey { get; private set; }
+    public byte[]? IV { get; private set; }
     
     private static readonly string UserConfig = $"{Directory.GetCurrentDirectory()}/user.bin";
 
@@ -55,11 +55,14 @@ public class AuthService
 
     public async Task SaveUserAsync()
     {
+        if (User is null || EncKey is null || IV is null)
+            return;
+        
         await using var file = File.Create(UserConfig);
-        using var binWriter = new BinaryWriter(file);
-        binWriter.Write(User.Username);
+        await using var binWriter = new BinaryWriter(file);
+        binWriter.Write(User.Value.Username);
         binWriter.Write(Convert.ToBase64String(EncKey));
-        binWriter.Write(Convert.ToBase64String(User.Password));
+        binWriter.Write(Convert.ToBase64String(User.Value.Password));
     }
     
     public void RemoveUser()

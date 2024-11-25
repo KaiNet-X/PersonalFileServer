@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using FileClient.Extensions;
 using FileClient.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
@@ -22,7 +21,7 @@ public partial class ConnectionPicker : UserControl
     public string ServerAddress { get; set; } = IPAddress.Loopback.ToString();
     public string Error { get; set; } = string.Empty;
 
-    private Action _onConnect;
+    private Action _onConnect = delegate { };
 
     public Action OnConnect 
     { 
@@ -36,7 +35,7 @@ public partial class ConnectionPicker : UserControl
     {
         InitializeComponent();
         DataContext = this;
-        client = Extensions1.ServiceProvider.GetService<Client>();
+        client = App.ServiceProvider.GetRequiredService<Client>();
     }
     
     public async void Ok()

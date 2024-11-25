@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Common;
-using FileClient.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 using System.Collections.ObjectModel;
@@ -32,16 +31,17 @@ public partial class FileTree : UserControl
         set => SetAndRaise(NodesProperty, ref _nodes, value);
     }
 
-    public Node SelectedNode { get; set; }
+    public Node? SelectedNode { get; set; }
 
     public FileTree()
     {
         InitializeComponent();
-        authService = Extensions1.ServiceProvider.GetService<AuthService>();
-        client = Extensions1.ServiceProvider.GetService<Client>();
-        fileService = Extensions1.ServiceProvider.GetService<FileService>();
+        authService = App.ServiceProvider.GetRequiredService<AuthService>();
+        client = App.ServiceProvider.GetRequiredService<Client>();
+        fileService = App.ServiceProvider.GetRequiredService<FileService>();
 
         DataContext = this;
+        _nodes = new ObservableCollection<Node>();
     }
 
     public async void Upload(object sender, RoutedEventArgs e)

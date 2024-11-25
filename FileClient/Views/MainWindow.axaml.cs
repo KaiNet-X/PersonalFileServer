@@ -1,28 +1,26 @@
-using System.Collections.Generic;
+namespace FileClient.Views;
+
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Common;
-using FileClient.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using ReactiveUI;
 
-namespace FileClient.Views;
-
 public partial class MainWindow : Window
 {
     private readonly Client client;
     private readonly AuthService authService;
-    private FileTree fileTree = null;
+    private FileTree? fileTree = null;
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = this;
-        client = Extensions1.ServiceProvider.GetService<Client>();
-        authService = Extensions1.ServiceProvider.GetService<AuthService>();
+        client = App.ServiceProvider.GetRequiredService<Client>();
+        authService = App.ServiceProvider.GetRequiredService<AuthService>();
 
         client.OnReceive<AuthenticationReply>(OnAuthReply);
         client.OnReceive<Tree>(t =>
@@ -40,7 +38,10 @@ public partial class MainWindow : Window
         if (!await authService.TryLoadUserAsync())
             ShowSignin();
         else
-            await client.SendObjectAsync(new AuthenticationRequest(authService.User.Username, authService.User.Password));
+        {
+            var user = authService.User.Value;
+            await client.SendObjectAsync(new AuthenticationRequest(user.Username, user.Password));
+        }
     }
 
     private async Task OnAuthReply(AuthenticationReply reply)
