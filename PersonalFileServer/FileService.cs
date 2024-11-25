@@ -103,7 +103,7 @@ public class FileService
         Directory.CreateDirectory(directory);
         await using (FileStream destination = File.Create(filePath))
         {
-            destination.WriteAsync(request.FileData);
+            await destination.WriteAsync(request.FileData);
         }
         Console.WriteLine($"{connection.Endpoint} uploaded {request.PathRequest}");
     }
