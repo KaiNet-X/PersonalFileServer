@@ -19,7 +19,8 @@ public partial class App : Application
         serviceCollection.AddSingleton<Client>();
         serviceCollection.AddSingleton(AuthService.Instance);
         serviceCollection.AddSingleton<FileService>();
-
+        serviceCollection.AddSingleton(BroadcastReceiverService.Instance);
+        
         var services = serviceCollection.BuildServiceProvider();
         services.GetRequiredService<Client>().OnDisconnected(inf =>
         {

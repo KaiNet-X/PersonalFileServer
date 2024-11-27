@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace FileClient.Views;
 
 using Avalonia;
@@ -96,5 +98,21 @@ public class Node
     {
         Title = title;
         SubNodes = subNodes;
+    }
+}
+
+public class NodeComparer : IEqualityComparer<Node>
+{
+    public bool Equals(Node? x, Node? y)
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (x is null) return false;
+        if (y is null) return false;
+        return x.Title == y.Title;
+    }
+
+    public int GetHashCode(Node obj)
+    {
+        return obj.Title.GetHashCode();
     }
 }

@@ -7,10 +7,13 @@ using ConnectionState = FileServer.ConnectionState;
 
 // NOTE: This doesn't work for large files. For that, you would have to send the file in multiple segments and reassemble it on the client
 
-const int PORT = 6969;
-var workingDirectory = @$"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+Console.Clear();
 
-var authService = new AuthService();
+const int PORT = 6969;
+var workingDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+
+var authService = AuthService.Instance;
+
 await authService.LoadUsersAsync();
 
 if (!Directory.Exists(workingDirectory))
@@ -29,7 +32,6 @@ var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(
     ClientRequiresWhitelistedTypes = true
 });
 
-
 var connections = new List<ConnectionState>();
 
 server.OnClientConnected(OnConnect);
@@ -38,44 +40,43 @@ server.OnDisconnect(OnDisconnect);
 
 server.OnObjectError((eFrame, sc) =>
 {
-    ConsoleManager.QueueLine($"Potential malicious payload \"{eFrame.TypeName}\" by {sc.RemoteEndpoint}");
+    Console.WriteLine($"Potential malicious payload \"{eFrame.TypeName}\" by {sc.RemoteEndpoint}");
 });
 
 server.Start();
 
+Announcer.Announce();
+
 AppDomain.CurrentDomain.ProcessExit += OnKill;
 
 foreach (var address in addresses)
-    ConsoleManager.QueueLine($"Hosting on {address}:{PORT}");
+    Console.WriteLine($"Hosting on {address}:{PORT}");
 
 bool exiting = false;
 do
 {
-    var value = (await ConsoleManager.GetNextCommand(5000))?.ToUpper();
-    switch (value)
-    {
-        case "EXIT":
-            exiting = true;
-            break;
-        case "LIST USERS":
-            foreach (var (uname, _) in  authService.Users)
-            {
-                ConsoleManager.QueueLine(uname);
-            }
-        break;
-        case null:
-            break;
-        default:
-            ConsoleManager.QueueLine("Unknown command");
-            break;
-    }
+    var value = Console.ReadLine();
+    var lower = value.ToLower();
+    
+    if (lower == "exit")
+        exiting = true;
+    else if (lower == "list users")
+        foreach (var (uname, _) in  authService.Users)
+            Console.WriteLine(uname);
+    else if (lower == "requests")
+        foreach (var username in ConnectionState.CreateRequests.Keys)
+            Console.WriteLine(username);
+    else if (lower.StartsWith("approve "))
+        await ConnectionState.ApproveUser(value[8..]);
+    else if (lower.StartsWith("reject "))
+        await ConnectionState.DenyUser(value[7..]);
 } while (!exiting);
 
 await server.ShutDownAsync();
 
 void OnConnect(ServerClient sc)
 {
-    connections.Add(new ConnectionState(sc, authService, fileService));
+    connections.Add(new ConnectionState(sc, fileService));
     Console.WriteLine($"{sc.LocalEndpoint} connected");
 }
 

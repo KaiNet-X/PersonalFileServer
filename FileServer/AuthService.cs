@@ -14,15 +14,16 @@ public class AuthService
     private readonly string EncryptionPath;
     private Dictionary<string, byte[]> users;
 
+    public static AuthService Instance { get; } = new();
     public ImmutableDictionary<string, byte[]> Users { get; private set;  }
     
-    public AuthService()
+    private AuthService()
     {
         PasswordPath = $@"{Directory.GetCurrentDirectory()}/Users.json";
         EncryptionPath = $@"{Directory.GetCurrentDirectory()}/Enc.json";
         encryption = InitializeEncryption();
     }
-
+    
     private EncryptionPair InitializeEncryption()
     {
         if (File.Exists(EncryptionPath))

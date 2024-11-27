@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace FileClient.Views;
 
 using Avalonia.Controls;
@@ -13,23 +16,36 @@ public partial class MainWindow : Window
 {
     private readonly Client client;
     private readonly AuthService authService;
+    private readonly BroadcastReceiverService broadcastReceiverService;
+    
     private FileTree? fileTree = null;
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = this;
-        client = App.ServiceProvider.GetRequiredService<Client>();
-        authService = App.ServiceProvider.GetRequiredService<AuthService>();
-
+        var sp = App.ServiceProvider;
+        client = sp.GetRequiredService<Client>();
+        authService = sp.GetRequiredService<AuthService>();
+        broadcastReceiverService = sp.GetRequiredService<BroadcastReceiverService>();
+        
         client.OnReceive<AuthenticationReply>(OnAuthReply);
         client.OnReceive<Tree>(t =>
         {
             Dispatcher.UIThread.Post(() =>
             {
                 fileTree.SetValue(FileTree.NodesProperty, new ObservableCollection<Node>([ToNode(t)]));
+                // var nodes = fileTree.GetValue(FileTree.NodesProperty);
+                // if (nodes is null)
+                // else if (nodes.Count == 0)
+                //     nodes.Add(ToNode(t));
+                // else
+                //     DiffNodes(nodes[0], ToNode(t));
             });
         });
+        
+        broadcastReceiverService.StartReceive();
+        Closing += (_, __) => broadcastReceiverService.Dispose();
     }
 
     public async void Connected()
@@ -109,8 +125,46 @@ public partial class MainWindow : Window
         client.OnReceive<AuthenticationReply>(OnAuthReply);
         authService.RemoveUser();
         Stack.Children.Clear();
-        var picker = new ConnectionPicker();
-        picker.OnConnect = Connected;
+        var picker = new ConnectionPicker
+        {
+            OnConnect = Connected
+        };
         Stack.Children.Add(picker);
+    }
+
+    private void DiffNodes(Node oldNode, Node newNode)
+    {
+        var toRemove = new List<Node>();
+        
+        var comparer = new NodeComparer();
+        
+        var oldNodes = new HashSet<Node>(oldNode.SubNodes ?? [], comparer);
+        var newNodes = new HashSet<Node>(newNode.SubNodes ?? [], comparer);
+
+        foreach (var node in oldNodes)
+        {
+            if (!newNodes.Contains(node))
+                oldNodes.Remove(node);
+            
+            DiffNodes(node, newNodes.First(n => n.Title == node.Title));
+        }
+
+        foreach (var node in newNodes)
+        {
+            if (!newNodes.Contains(node))
+                newNodes.Add(node);
+        }
+    }
+
+    private void DiffNodes(Node node, Tree tree)
+    {
+        var treeSet = new HashSet<Tree>(tree);
+        var nodeSet = new HashSet<Node>(node.SubNodes);
+        
+        //var treenodes = new HashSet(tree.Nodes)
+        foreach (var n in tree.Nodes)
+        {
+            
+        }
     }
 }
