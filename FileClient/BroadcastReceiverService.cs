@@ -25,7 +25,7 @@ public class BroadcastReceiverService : IDisposable
 
     public void StartReceive()
     {
-        socket.Bind(new IPEndPoint(IPAddress.Any, 19995));
+        socket.Bind(new IPEndPoint(IPAddress.Any, 55555));
         socket.EnableBroadcast = true;
         cts = new CancellationTokenSource();
         Task.Factory.StartNew(Receive, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
