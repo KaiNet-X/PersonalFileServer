@@ -7,7 +7,7 @@
              x:Class="FileClient.Views.FileTree"
              x:DataType="v:FileTree">
 	<StackPanel Spacing="10">
-		<TreeView ItemsSource="{Binding Nodes, Mode=TwoWay}" SelectedItem="{Binding SelectedNode}">
+		<TreeView ItemsSource="{Binding Node.SubNodes, Mode=TwoWay}" SelectedItem="{Binding SelectedNode}">
 			<TreeView.ItemTemplate>
 				<TreeDataTemplate ItemsSource="{Binding SubNodes, Mode=TwoWay}">
 					<TextBlock Text="{Binding Title}"/>

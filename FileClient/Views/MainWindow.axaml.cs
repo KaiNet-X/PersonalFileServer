@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
+using Avalonia.Interactivity;
 
 namespace FileClient.Views;
 
@@ -34,7 +36,13 @@ public partial class MainWindow : Window
         {
             Dispatcher.UIThread.Post(() =>
             {
-                fileTree.SetValue(FileTree.NodesProperty, new ObservableCollection<Node>([ToNode(t)]));
+                fileTree.SetValue(FileTree.NodeProperty, ToNode(t));
+
+                // var nodes = fileTree.GetValue(FileTree.NodesProperty);
+                // nodes.Clear();
+                // nodes.Add(ToNode(t));
+                
+                //fileTree.SetValue(FileTree.NodesProperty, new ObservableCollection<Node>([ToNode(t)]));
                 // var nodes = fileTree.GetValue(FileTree.NodesProperty);
                 // if (nodes is null)
                 // else if (nodes.Count == 0)
@@ -48,6 +56,31 @@ public partial class MainWindow : Window
         Closing += (_, __) => broadcastReceiverService.Dispose();
     }
 
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        UpdateDimensions();
+    }
+
+    private void UpdateDimensions()
+    {
+        return;
+        var size = new Size();
+        Stack.Measure(size);
+        
+        var h = size.Height;
+        var w = size.Width;
+        if (Height < h)
+            Height = h;
+        if (Width < w)
+            Width = w;
+        
+        MinHeight = Stack.DesiredSize.Height;
+        MinWidth = Stack.DesiredSize.Width;
+        
+        //SizeToContent = SizeToContent.Manual;
+    }
+    
     public async void Connected()
     {
         Stack.Children.Clear();
@@ -58,6 +91,8 @@ public partial class MainWindow : Window
             var user = authService.User.Value;
             await client.SendObjectAsync(new AuthenticationRequest(user.Username, user.Password));
         }
+        
+        UpdateDimensions();
     }
 
     private async Task OnAuthReply(AuthenticationReply reply)
@@ -70,6 +105,8 @@ public partial class MainWindow : Window
         }
         else
             ShowSignin();
+        
+        UpdateDimensions();
     }
 
     void ShowSignin()
@@ -89,6 +126,7 @@ public partial class MainWindow : Window
         signin.SignInUp = title;
         signin.SetValue(Signin.SignInCompleteProperty, SignInComplete);
         Stack.Children.Add(signin);
+        UpdateDimensions();
     }
     
     public async Task SignInComplete()
@@ -98,6 +136,7 @@ public partial class MainWindow : Window
             Stack.Children.Clear();
             Stack.Children.Add(new ConnectionInfo(ReactiveCommand.Create(SignOut)));
             Stack.Children.Add(fileTree = new FileTree());
+            UpdateDimensions();
         });
 
         await client.SendMessageAsync(new FileRequestMessage

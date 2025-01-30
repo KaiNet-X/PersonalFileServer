@@ -1,4 +1,6 @@
-﻿namespace FileClient;
+﻿using Avalonia.Platform.Storage;
+
+namespace FileClient;
 
 using Common;
 using System;
@@ -28,23 +30,16 @@ public class FileService
         client.OnMessageReceived<FileRequestMessage>(OnFileMessage);
     }
 
-    public async Task UploadFileAsync(string path, string name)
+    public async Task UploadFileAsync(IStorageFile file)
     {
         byte[] memBuf;
 
-        await using (var fileStream = new FileStream(path, new FileStreamOptions
-             {
-                 Access = FileAccess.Read,
-                 Mode = FileMode.Open,
-                 Options = FileOptions.SequentialScan
-             }))
-        {
+        await using (var fileStream = await file.OpenReadAsync())
             memBuf = await Crypto.CompressAsync(fileStream);
-        }
         
         memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey, authService.IV);
         
-        var newMsg = new FileRequestMessage { RequestType = FileRequestType.Upload, PathRequest = name, FileData = memBuf };
+        var newMsg = new FileRequestMessage { RequestType = FileRequestType.Upload, PathRequest = file.Name, FileData = memBuf };
         
         await client.SendMessageAsync(newMsg);
     }

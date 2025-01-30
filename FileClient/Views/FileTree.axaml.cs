@@ -16,24 +16,39 @@ using System.IO.Compression;
 
 public partial class FileTree : UserControl
 {
-    public static readonly DirectProperty<FileTree, ObservableCollection<Node>> NodesProperty =
-        AvaloniaProperty.RegisterDirect<FileTree, ObservableCollection<Node>>(
-            nameof(Nodes),
-            c => c.Nodes,
-            (c, val) => c.Nodes = val,
+    // public static readonly DirectProperty<FileTree, ObservableCollection<Node>> NodesProperty =
+    //     AvaloniaProperty.RegisterDirect<FileTree, ObservableCollection<Node>>(
+    //         nameof(Nodes),
+    //         c => c.Nodes,
+    //         (c, val) => c.Nodes = val,
+    //         defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly DirectProperty<FileTree, Node> NodeProperty =
+        AvaloniaProperty.RegisterDirect<FileTree, Node>(
+            nameof(Node),
+            c => c.Node,
+            (c, val) => c.Node = val,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     private readonly AuthService authService;
     private readonly FileService fileService;
     private readonly Client client;
 
-    private ObservableCollection<Node> _nodes;
-    public ObservableCollection<Node> Nodes 
-    { 
-        get => _nodes;
-        set => SetAndRaise(NodesProperty, ref _nodes, value);
-    }
+    // private ObservableCollection<Node> _nodes;
+    // public ObservableCollection<Node> Nodes 
+    // { 
+    //     get => _nodes;
+    //     set => SetAndRaise(NodesProperty, ref _nodes, value);
+    // }
 
+    private Node _node;
+
+    public Node Node
+    {
+        get => _node;
+        set => SetAndRaise(NodeProperty, ref _node, value);
+    }
+    
     public Node? SelectedNode { get; set; }
 
     public FileTree()
@@ -44,7 +59,7 @@ public partial class FileTree : UserControl
         fileService = App.ServiceProvider.GetRequiredService<FileService>();
 
         DataContext = this;
-        _nodes = new ObservableCollection<Node>();
+        //_nodes = new ObservableCollection<Node>();
     }
 
     public async void Upload(object sender, RoutedEventArgs e)
@@ -53,18 +68,12 @@ public partial class FileTree : UserControl
 
         var picker = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
-            AllowMultiple = false
+            AllowMultiple = true
         });
 
         if (picker.Count > 0)
-            await fileService.UploadFileAsync(DecodeUrlString(picker[0].Path.AbsolutePath), picker[0].Name);
-    }
-
-    private static string DecodeUrlString(string url) {
-        string newUrl;
-        while ((newUrl = Uri.UnescapeDataString(url)) != url)
-            url = newUrl;
-        return newUrl;
+            foreach (var file in picker)
+                await fileService.UploadFileAsync(file);
     }
     
     public async void Download(object sender, RoutedEventArgs e)
