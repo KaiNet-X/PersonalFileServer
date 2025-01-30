@@ -66,6 +66,7 @@ public partial class FileTree : UserControl
     {
         var topLevel = TopLevel.GetTopLevel(this);
 
+        //await topLevel.StorageProvider.OpenFolderPickerAsync();
         var picker = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
             AllowMultiple = true

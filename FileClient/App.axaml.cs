@@ -1,3 +1,5 @@
+using Net;
+
 namespace FileClient;
 
 using Avalonia;
@@ -40,6 +42,12 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
+            desktop.Exit += (_, _) =>
+            {
+                var client = ServiceProvider.GetService<Client>();
+                if (client is {ConnectionState: ConnectionState.CONNECTED})
+                    client.Close();
+            };
         }
 
         base.OnFrameworkInitializationCompleted();
