@@ -46,7 +46,7 @@ public class BroadcastReceiverService : IDisposable
             EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
             var result = await socket.ReceiveFromAsync(receiveBuffer.AsMemory(), remoteEP, cancellationToken);
             
-            if (Encoding.UTF8.GetString(receiveBuffer) == "KaiNet Server" && remoteEP is IPEndPoint ep)
+            if (Encoding.UTF8.GetString(receiveBuffer) == "KaiNet Server" && result.RemoteEndPoint is IPEndPoint ep)
             {
                 if (!ServerAddresses.Add(ep.Address))
                     return;
@@ -58,6 +58,7 @@ public class BroadcastReceiverService : IDisposable
     public void Dispose()
     {
         socket.Close();
+        cts.Cancel();
         cts.Dispose();
     }
 }
