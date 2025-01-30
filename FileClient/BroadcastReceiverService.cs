@@ -21,6 +21,7 @@ public class BroadcastReceiverService : IDisposable
     private BroadcastReceiverService()
     {
         socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
     }
 
     public void StartReceive()
@@ -28,7 +29,7 @@ public class BroadcastReceiverService : IDisposable
         socket.Bind(new IPEndPoint(IPAddress.Any, 55555));
         socket.EnableBroadcast = true;
         cts = new CancellationTokenSource();
-        Task.Factory.StartNew(Receive, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        Task.Factory.StartNew(async () => await ReceiveAsync(cts.Token), cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
     public void StopReceive()
@@ -37,13 +38,14 @@ public class BroadcastReceiverService : IDisposable
         cts.Dispose();
     }
     
-    private void Receive()
+    private async Task ReceiveAsync(CancellationToken cancellationToken)
     {
         var receiveBuffer = new byte[13];
         while (!cts.Token.IsCancellationRequested)
         {
             EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-            socket.ReceiveFrom(receiveBuffer, ref remoteEP);
+            var result = await socket.ReceiveFromAsync(receiveBuffer.AsMemory(), remoteEP, cancellationToken);
+            
             if (Encoding.UTF8.GetString(receiveBuffer) == "KaiNet Server" && remoteEP is IPEndPoint ep)
             {
                 if (!ServerAddresses.Add(ep.Address))
