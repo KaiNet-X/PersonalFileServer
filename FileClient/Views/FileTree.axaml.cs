@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace FileClient.Views;
@@ -56,9 +57,16 @@ public partial class FileTree : UserControl
         });
 
         if (picker.Count > 0)
-            await fileService.UploadFileAsync(picker[0].Path.AbsolutePath, picker[0].Name);
+            await fileService.UploadFileAsync(DecodeUrlString(picker[0].Path.AbsolutePath), picker[0].Name);
     }
 
+    private static string DecodeUrlString(string url) {
+        string newUrl;
+        while ((newUrl = Uri.UnescapeDataString(url)) != url)
+            url = newUrl;
+        return newUrl;
+    }
+    
     public async void Download(object sender, RoutedEventArgs e)
     {
         if (SelectedNode == null)
