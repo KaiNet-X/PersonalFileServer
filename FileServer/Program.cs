@@ -58,7 +58,7 @@ do
     
     if (lower == "exit")
         exiting = true;
-    else if (lower == "list users")
+    else if (lower == "users")
         foreach (var (uname, _) in  authService.Users)
             Console.WriteLine(uname);
     else if (lower == "requests")
@@ -68,6 +68,15 @@ do
         await ConnectionState.ApproveUser(value[8..]);
     else if (lower.StartsWith("reject "))
         await ConnectionState.DenyUser(value[7..]);
+    else
+    {
+        Console.WriteLine("Unknown command. List of available commands are: ");
+        Console.WriteLine("exit: terminates the server program");
+        Console.WriteLine("users: lists users that are registered with the server");
+        Console.WriteLine("requests: lists user creation requests");
+        Console.WriteLine("approve [user]: approves a user request");
+        Console.WriteLine("reject [user]: rejects a user request");
+    }
 } while (!exiting);
 
 await server.ShutDownAsync();

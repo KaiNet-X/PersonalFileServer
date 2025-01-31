@@ -7,8 +7,8 @@ namespace FileServer;
 
 public class ConnectionState
 {
-    public static ConcurrentDictionary<string, (ConnectionState connection, UserCreateRequest request)> CreateRequests = new ();
-    private static SemaphoreSlim requestsSemaphore = new(1, 1);
+    public static readonly ConcurrentDictionary<string, (ConnectionState connection, UserCreateRequest request)> CreateRequests = new ();
+    private static readonly SemaphoreSlim requestsSemaphore = new(1, 1);
     
     private static EventQueue eventQueue = new();
     
