@@ -80,7 +80,11 @@ public class FileService
                     }
                     break;
             }
+
             await SendTree(connection.Client, connection.User.Username);
+            
+            foreach (var conn in ConnectionState.Connections.Where(cs => cs.User.Username == connection.User.Username && cs != connection))
+                await SendTree(conn.Client, connection.User.Username);
         }
         catch (Exception e)
         {

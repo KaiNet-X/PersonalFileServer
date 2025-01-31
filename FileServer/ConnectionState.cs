@@ -20,6 +20,8 @@ public class ConnectionState
     public readonly ServerClient Client;
     private readonly FileService _fileService;
     
+    public static List<ConnectionState> Connections { get; } = new();
+    
     public bool Authenticated { get; private set; }
     
     public ConnectionState(ServerClient client, FileService fileService)

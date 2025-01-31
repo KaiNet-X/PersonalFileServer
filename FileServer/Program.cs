@@ -32,8 +32,6 @@ var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(
     ClientRequiresWhitelistedTypes = true
 });
 
-var connections = new List<ConnectionState>();
-
 server.OnClientConnected(OnConnect);
 
 server.OnDisconnect(OnDisconnect);
@@ -76,13 +74,13 @@ await server.ShutDownAsync();
 
 void OnConnect(ServerClient sc)
 {
-    connections.Add(new ConnectionState(sc, fileService));
+    ConnectionState.Connections.Add(new ConnectionState(sc, fileService));
     Console.WriteLine($"{sc.LocalEndpoint} connected");
 }
 
 void OnDisconnect (DisconnectionInfo info, ServerClient sc)
 {
-    connections.Remove(connections.FirstOrDefault(c => c.Client == sc));
+    ConnectionState.Connections.Remove(ConnectionState.Connections.FirstOrDefault(c => c.Client == sc));
     Console.WriteLine($"{sc.LocalEndpoint} {info.Reason}");
 }
 
