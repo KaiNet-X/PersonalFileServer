@@ -110,9 +110,12 @@ public class FileService
 
     private async Task HandleDeleteRequestAsync(FileRequestMessage request, ConnectionState connection, string filePath)
     {
-        File.Delete(filePath);                             
-        Console.WriteLine($"{connection.Endpoint} deleted {request.PathRequest}");
+        if (Directory.Exists(filePath))
+            Directory.Delete(filePath, true);
+        else
+            File.Delete(filePath);
         
+        Console.WriteLine($"{connection.Endpoint} deleted {request.PathRequest}");
     }
     
     private Tree GetTree(string dir)
