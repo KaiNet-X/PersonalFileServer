@@ -30,7 +30,7 @@ public class FileService
         client.OnMessageReceived<FileRequestMessage>(OnFileMessage);
     }
 
-    public async Task UploadFileAsync(IStorageFile file)
+    public async Task UploadFileAsync(IStorageFile file, string path = null)
     {
         byte[] memBuf;
 
@@ -39,11 +39,29 @@ public class FileService
         
         memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey, authService.IV);
         
-        var newMsg = new FileRequestMessage { RequestType = FileRequestType.Upload, PathRequest = file.Name, FileData = memBuf };
+        var newMsg = new FileRequestMessage
+        {
+            RequestType = FileRequestType.Upload,
+            PathRequest = path is not null ? $"{path}{Path.DirectorySeparatorChar}{file.Name}" : file.Name, 
+            FileData = memBuf
+        };
         
         await client.SendMessageAsync(newMsg);
     }
 
+    public async Task UploadFolderAsync(IStorageFolder folder, string path = null)
+    {
+        var name = folder.Name;
+        path = path is not null ? $"{path}{Path.DirectorySeparatorChar}{name}" : name;
+        await foreach (var storageItem in folder.GetItemsAsync())
+        {
+            if (storageItem is IStorageFolder storageFolder)
+                await UploadFolderAsync(storageFolder, path);
+            else if (storageItem is IStorageFile storageFile)
+                await UploadFileAsync(storageFile, path);
+        }
+    }
+    
     private async Task OnFileMessage(FileRequestMessage msg)
     {
         Directory.CreateDirectory(DownloadDirectory);

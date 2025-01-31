@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using Avalonia.Input;
+using Avalonia.Platform.Storage;
 
 namespace FileClient.Views;
 
@@ -59,15 +63,15 @@ public partial class FileTree : UserControl
         fileService = App.ServiceProvider.GetRequiredService<FileService>();
 
         DataContext = this;
+        AddHandler(DragDrop.DropEvent, OnDrop);
         //_nodes = new ObservableCollection<Node>();
     }
 
-    public async void Upload(object sender, RoutedEventArgs e)
+    public async void UploadFile(object sender, RoutedEventArgs e)
     {
         var topLevel = TopLevel.GetTopLevel(this);
 
-        //await topLevel.StorageProvider.OpenFolderPickerAsync();
-        var picker = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        var picker = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             AllowMultiple = true
         });
@@ -75,6 +79,21 @@ public partial class FileTree : UserControl
         if (picker.Count > 0)
             foreach (var file in picker)
                 await fileService.UploadFileAsync(file);
+    }
+
+    public async void UploadFolder(object sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+
+        var picker = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
+        {
+            AllowMultiple = true
+        });
+
+        if (picker.Count > 0)
+            foreach (var folder in picker)
+                await fileService.UploadFolderAsync(folder);
+
     }
     
     public async void Download(object sender, RoutedEventArgs e)
@@ -93,18 +112,47 @@ public partial class FileTree : UserControl
     {
         if (SelectedNode == null)
             return;
+
+        var path = SelectedNode.Title;
         
+        var node = SelectedNode.Parent;
+        
+        while (node != null)
+        {
+            path = $"{node.Title}{Path.DirectorySeparatorChar}{path}";
+
+            node = node.Parent;
+        }
+    
+        //SelectedNode.
         await client.SendMessageAsync(new FileRequestMessage
         {
             RequestType = FileRequestType.Delete,
-            PathRequest = SelectedNode.Title
+            PathRequest = path
         });
+    }
+
+    private async Task OnDrop(object sender, DragEventArgs e)
+    {
+        var names = e.Data.GetFiles();
+        
+        if (names is not null)
+            foreach (var item in names)
+            {
+                if (item is IStorageFile file)
+                    await fileService.UploadFileAsync(file);
+                else if (item is IStorageFolder folder)
+                    await fileService.UploadFolderAsync(folder);
+            }
     }
 }
 
 public class Node
 {
     public ObservableCollection<Node>? SubNodes { get; set; }
+    
+    public Node? Parent { get; set; }
+    
     public string Title { get; }
 
     public Node(string title)
@@ -112,7 +160,7 @@ public class Node
         Title = title;
     }
 
-    public Node(string title, ObservableCollection<Node> subNodes)
+    public Node(string title, ObservableCollection<Node>? subNodes)
     {
         Title = title;
         SubNodes = subNodes;

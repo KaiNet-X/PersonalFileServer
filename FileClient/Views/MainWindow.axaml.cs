@@ -150,12 +150,18 @@ public partial class MainWindow : Window
         if (tree.Nodes.Count == 0)
             return new Node(tree.Value);
 
-        var nodes = new ObservableCollection<Node>();
-
-        foreach (var node in tree)
-            nodes.Add(ToNode(node));
-
-        return new Node(tree.Value) { SubNodes = nodes };
+        var node = new Node(tree.Value);
+        
+        node.SubNodes = new ObservableCollection<Node>();
+        
+        foreach (var child in tree.Nodes)
+        {
+            var subNode = ToNode(child);
+            subNode.Parent = node;
+            node.SubNodes.Add(subNode);
+        }
+        
+        return node;
     }
 
     private void SignOut()

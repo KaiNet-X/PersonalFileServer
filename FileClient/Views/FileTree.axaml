@@ -6,18 +6,21 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.FileTree"
              x:DataType="v:FileTree">
-	<StackPanel Spacing="10">
-		<TreeView ItemsSource="{Binding Node.SubNodes, Mode=TwoWay}" SelectedItem="{Binding SelectedNode}">
-			<TreeView.ItemTemplate>
-				<TreeDataTemplate ItemsSource="{Binding SubNodes, Mode=TwoWay}">
-					<TextBlock Text="{Binding Title}"/>
-				</TreeDataTemplate>
-			</TreeView.ItemTemplate>
-		</TreeView>
-		<StackPanel Orientation="Horizontal" Spacing="10">
-			<Button Click="Upload">Upload</Button>
-			<Button Click="Download">Download</Button>
-			<Button Click="Delete">Delete</Button>
+		<StackPanel Spacing="10">
+			<Border BorderThickness="1" BorderBrush="White" DragDrop.AllowDrop="True">
+				<TreeView ItemsSource="{Binding Node.SubNodes}" SelectedItem="{Binding SelectedNode}">
+					<TreeView.ItemTemplate>
+						<TreeDataTemplate ItemsSource="{Binding SubNodes}">
+							<TextBlock Text="{Binding Title}"/>
+						</TreeDataTemplate>
+					</TreeView.ItemTemplate>
+				</TreeView>
+			</Border>
+			<StackPanel Orientation="Horizontal" Spacing="10">
+				<Button Click="UploadFile">Upload</Button>
+				<Button Click="UploadFolder">Folder</Button>
+				<Button Click="Download">Download</Button>
+				<Button Click="Delete">Delete</Button>
+			</StackPanel>
 		</StackPanel>
-	</StackPanel>
 </UserControl>
