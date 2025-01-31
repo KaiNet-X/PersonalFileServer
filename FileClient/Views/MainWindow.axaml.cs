@@ -36,7 +36,12 @@ public partial class MainWindow : Window
         {
             Dispatcher.UIThread.Post(() =>
             {
-                fileTree.SetValue(FileTree.NodeProperty, ToNode(t));
+                var rootNode = fileTree.GetValue(FileTree.NodeProperty);
+
+                if (rootNode != null)
+                    DiffNodes(rootNode, t);
+                else
+                    fileTree.SetValue(FileTree.NodeProperty, ToNode(t));
 
                 // var nodes = fileTree.GetValue(FileTree.NodesProperty);
                 // nodes.Clear();
@@ -152,8 +157,6 @@ public partial class MainWindow : Window
 
         var node = new Node(tree.Value);
         
-        node.SubNodes = new ObservableCollection<Node>();
-        
         foreach (var child in tree.Nodes)
         {
             var subNode = ToNode(child);
@@ -203,13 +206,33 @@ public partial class MainWindow : Window
 
     private void DiffNodes(Node node, Tree tree)
     {
-        var treeSet = new HashSet<Tree>(tree);
-        var nodeSet = new HashSet<Node>(node.SubNodes);
+        var treeSet = new HashSet<string>(tree.Nodes.Select(tn => tn.Value));
+        var nodeSet = new HashSet<string>(node.SubNodes.Select(sn => sn.Title));
         
         //var treenodes = new HashSet(tree.Nodes)
-        foreach (var n in tree.Nodes)
+        
+        // Remove deleted nodes
+
+        for (int i = 0; i < node.SubNodes.Count; i++)
         {
-            
+            var subNode = node.SubNodes[i];
+            if (!treeSet.Contains(subNode.Title))
+            {
+                node.SubNodes.Remove(subNode);
+                i--;
+            }
+        }
+
+        foreach (var tr in tree.Nodes)
+        {
+            if (nodeSet.Contains(tr.Value))
+                DiffNodes(node.SubNodes.First(sn => sn.Title == tr.Value), tr);
+            else
+            {
+                var subNode = ToNode(tr);
+                subNode.Parent = node;
+                node.SubNodes.Add(subNode);
+            }
         }
     }
 }

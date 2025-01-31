@@ -149,7 +149,7 @@ public partial class FileTree : UserControl
 
 public class Node
 {
-    public ObservableCollection<Node>? SubNodes { get; set; }
+    public ObservableCollection<Node> SubNodes { get; }
     
     public Node? Parent { get; set; }
     
@@ -158,12 +158,7 @@ public class Node
     public Node(string title)
     {
         Title = title;
-    }
-
-    public Node(string title, ObservableCollection<Node>? subNodes)
-    {
-        Title = title;
-        SubNodes = subNodes;
+        SubNodes = new ObservableCollection<Node>();
     }
 }
 
