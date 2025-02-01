@@ -6,9 +6,9 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FileClient.Views.MainWindow"
 		x:DataType="y:MainWindow"
-        Title="MainWindow"
+        Title="File Client"
         Background="#dd000000">
-  <StackPanel Name="Stack" Spacing="10" Margin="10">
+  <StackPanel Name="Stack" Spacing="10" Margin="20">
     <y:ConnectionPicker OnConnect="Connected"/>
   </StackPanel>
 </Window>

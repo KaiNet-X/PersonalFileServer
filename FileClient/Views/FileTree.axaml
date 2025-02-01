@@ -7,7 +7,7 @@
              x:Class="FileClient.Views.FileTree"
              x:DataType="v:FileTree">
 		<StackPanel Spacing="10">
-			<Border BorderThickness="1" BorderBrush="White" DragDrop.AllowDrop="True">
+			<Border DragDrop.AllowDrop="True" CornerRadius="10" Background="#55555555">
 				<TreeView ItemsSource="{Binding Node.SubNodes}" SelectedItem="{Binding SelectedNode}">
 					<TreeView.ItemTemplate>
 						<TreeDataTemplate ItemsSource="{Binding SubNodes}">
@@ -17,8 +17,8 @@
 				</TreeView>
 			</Border>
 			<StackPanel Orientation="Horizontal" Spacing="10">
-				<Button Click="UploadFile">Upload</Button>
-				<Button Click="UploadFolder">Folder</Button>
+				<Button Click="UploadFile">Upload File</Button>
+				<Button Click="UploadFolder">Upload Folder</Button>
 				<Button Click="Download">Download</Button>
 				<Button Click="Delete">Delete</Button>
 			</StackPanel>

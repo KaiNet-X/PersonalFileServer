@@ -27,6 +27,10 @@ public static class Announcer
     
     private static void AnnounceAsync(object? obj)
     {
-        socket.SendTo("KaiNet Server"u8.ToArray(), new IPEndPoint(IPAddress.Broadcast, 55555));
+        try
+        {
+            socket.SendTo("KaiNet Server"u8.ToArray(), new IPEndPoint(IPAddress.Broadcast, 55555));
+        }
+        catch (Exception) { }
     }
 }

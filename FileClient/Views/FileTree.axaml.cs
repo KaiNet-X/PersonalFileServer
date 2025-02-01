@@ -104,7 +104,7 @@ public partial class FileTree : UserControl
         await client.SendMessageAsync(new FileRequestMessage
         {
             RequestType = FileRequestType.Download,
-            PathRequest = SelectedNode.Title
+            PathRequest = GetPath(SelectedNode)
         });
     }
 
@@ -113,9 +113,18 @@ public partial class FileTree : UserControl
         if (SelectedNode == null)
             return;
 
-        var path = SelectedNode.Title;
+        await client.SendMessageAsync(new FileRequestMessage
+        {
+            RequestType = FileRequestType.Delete,
+            PathRequest = GetPath(SelectedNode)
+        });
+    }
+
+    private string GetPath(Node node)
+    {
+        var path = node.Title;
         
-        var node = SelectedNode.Parent;
+        node = SelectedNode.Parent;
         
         while (node != null)
         {
@@ -123,15 +132,10 @@ public partial class FileTree : UserControl
 
             node = node.Parent;
         }
-    
-        //SelectedNode.
-        await client.SendMessageAsync(new FileRequestMessage
-        {
-            RequestType = FileRequestType.Delete,
-            PathRequest = path
-        });
+        
+        return path;
     }
-
+    
     private async Task OnDrop(object sender, DragEventArgs e)
     {
         var names = e.Data.GetFiles();
