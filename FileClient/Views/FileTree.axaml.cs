@@ -20,13 +20,6 @@ using System.IO.Compression;
 
 public partial class FileTree : UserControl
 {
-    // public static readonly DirectProperty<FileTree, ObservableCollection<Node>> NodesProperty =
-    //     AvaloniaProperty.RegisterDirect<FileTree, ObservableCollection<Node>>(
-    //         nameof(Nodes),
-    //         c => c.Nodes,
-    //         (c, val) => c.Nodes = val,
-    //         defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
-
     public static readonly DirectProperty<FileTree, Node> NodeProperty =
         AvaloniaProperty.RegisterDirect<FileTree, Node>(
             nameof(Node),
@@ -34,27 +27,48 @@ public partial class FileTree : UserControl
             (c, val) => c.Node = val,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
+    public static readonly DirectProperty<FileTree, Node> SelectedNodeProperty =
+        AvaloniaProperty.RegisterDirect<FileTree, Node>(
+            nameof(SelectedNode),
+            c => c.SelectedNode,
+            (c, val) => c.SelectedNode = val,
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly DirectProperty<FileTree, bool> IsSelectedProperty =
+        AvaloniaProperty.RegisterDirect<FileTree, bool>(
+            nameof(IsSelected),
+            c => c.IsSelected);
+    
     private readonly AuthService authService;
     private readonly FileService fileService;
     private readonly Client client;
 
-    // private ObservableCollection<Node> _nodes;
-    // public ObservableCollection<Node> Nodes 
-    // { 
-    //     get => _nodes;
-    //     set => SetAndRaise(NodesProperty, ref _nodes, value);
-    // }
-
     private Node _node;
-
+    private Node? _selectedNode;
+    private bool _isSelected;
+    
     public Node Node
     {
         get => _node;
         set => SetAndRaise(NodeProperty, ref _node, value);
     }
-    
-    public Node? SelectedNode { get; set; }
 
+    public Node? SelectedNode
+    {
+        get => _selectedNode;
+        set
+        {
+            SetAndRaise(SelectedNodeProperty, ref _selectedNode, value);
+            IsSelected = SelectedNode is not null;
+        }
+    }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetAndRaise(IsSelectedProperty, ref _isSelected, value);
+    }
+    
     public FileTree()
     {
         InitializeComponent();

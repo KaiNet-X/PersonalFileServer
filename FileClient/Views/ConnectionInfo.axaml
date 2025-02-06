@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.ConnectionInfo"
              x:DataType="vm:ConnectionInfoViewModel">
-    <Border CornerRadius="10" Background="#55555555">
+    <Border>
         <Grid>
             <sg:SpacedGrid Margin="10" RowSpacing="10" ColumnSpacing="10">
                 <Grid.ColumnDefinitions>

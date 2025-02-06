@@ -8,7 +8,7 @@
              x:DataType="vm:ConnectionPickerViewModel"
              x:Class="FileClient.Views.ConnectionPicker">
   <StackPanel Spacing="10">
-    <Border CornerRadius="10" Background="#55555555" MaxWidth="200" HorizontalAlignment="Left">
+    <Border MaxWidth="200" HorizontalAlignment="Left">
         <StackPanel Spacing="10" HorizontalAlignment="Left" Margin="20">
           <TextBlock>Server address</TextBlock>
           <TextBox Name="TextBox" Text="{Binding ServerAddress, Mode=TwoWay}" MinWidth="150" />
