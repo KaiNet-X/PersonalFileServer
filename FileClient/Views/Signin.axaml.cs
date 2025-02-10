@@ -4,6 +4,7 @@ using Common;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using Avalonia.Input;
 using Net.Connection.Clients.Tcp;
 
 namespace FileClient.Views;
@@ -64,5 +65,14 @@ public partial class Signin : UserControl
             await _client.SendObjectAsync(new AuthenticationRequest(Username, user.Password));
         else
             await _client.SendObjectAsync(new UserCreateRequest(Username, user.Password));
+    }
+
+    private async void KeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Return)
+        {
+            Focus();
+            await SignIn();
+        }
     }
 }

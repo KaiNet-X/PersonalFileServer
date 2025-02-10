@@ -179,31 +179,7 @@ public partial class MainWindow : Window
         };
         Stack.Children.Add(picker);
     }
-
-    private void DiffNodes(Node oldNode, Node newNode)
-    {
-        var toRemove = new List<Node>();
-        
-        var comparer = new NodeComparer();
-        
-        var oldNodes = new HashSet<Node>(oldNode.SubNodes ?? [], comparer);
-        var newNodes = new HashSet<Node>(newNode.SubNodes ?? [], comparer);
-
-        foreach (var node in oldNodes)
-        {
-            if (!newNodes.Contains(node))
-                oldNodes.Remove(node);
-            
-            DiffNodes(node, newNodes.First(n => n.Title == node.Title));
-        }
-
-        foreach (var node in newNodes)
-        {
-            if (!newNodes.Contains(node))
-                newNodes.Add(node);
-        }
-    }
-
+    
     private void DiffNodes(Node node, Tree tree)
     {
         var treeSet = new HashSet<string>(tree.Nodes.Select(tn => tn.Value));

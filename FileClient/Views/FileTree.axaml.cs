@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Input;
@@ -114,12 +115,11 @@ public partial class FileTree : UserControl
     {
         if (SelectedNode == null)
             return;
-        
-        await client.SendMessageAsync(new FileRequestMessage
-        {
-            RequestType = FileRequestType.Download,
-            PathRequest = GetPath(SelectedNode)
-        });
+
+        if (SelectedNode.SubNodes.Any())
+            await fileService.DownloadFolderAsync(SelectedNode, GetPath(SelectedNode));
+        else
+            await fileService.DownloadFileAsync(GetPath(SelectedNode));
     }
 
     public async void Delete(object sender, RoutedEventArgs e)
@@ -127,11 +127,7 @@ public partial class FileTree : UserControl
         if (SelectedNode == null)
             return;
 
-        await client.SendMessageAsync(new FileRequestMessage
-        {
-            RequestType = FileRequestType.Delete,
-            PathRequest = GetPath(SelectedNode)
-        });
+        await client.SendObjectAsync(new FileRequest(FileRequestType.Delete, Guid.NewGuid(), GetPath(SelectedNode)));
     }
 
     private string GetPath(Node node)

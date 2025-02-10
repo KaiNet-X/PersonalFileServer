@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace FileClient;
 
 using System;
@@ -14,7 +16,10 @@ public class BroadcastReceiverService : IDisposable
     private CancellationTokenSource cts;
     
     public Action<string> OnServer;
-    public HashSet<IPAddress> ServerAddresses { get; } = new ();
+    
+    private readonly HashSet<IPAddress> _serverAddresses = new();
+    
+    public IEnumerable<string> ServerAddresses => _serverAddresses.Select(addr => addr.MapToIPv4().ToString());
     
     public static BroadcastReceiverService Instance { get; } = new();
     
@@ -48,7 +53,7 @@ public class BroadcastReceiverService : IDisposable
             
             if (Encoding.UTF8.GetString(receiveBuffer) == "KaiNet Server" && result.RemoteEndPoint is IPEndPoint ep)
             {
-                if (!ServerAddresses.Add(ep.Address))
+                if (!_serverAddresses.Add(ep.Address))
                     return;
                 OnServer?.Invoke(ep.Address.MapToIPv4().ToString());
             }

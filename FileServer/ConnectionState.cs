@@ -30,6 +30,7 @@ public class ConnectionState
         _fileService = fileService;
         client.OnReceive<AuthenticationRequest>(req => eventQueue.Enqueue(() => OnAuthenticating(req)));
         client.OnReceive<UserCreateRequest>(req => eventQueue.Enqueue(() => OnCreateUserRequest(req)));
+        client.OnReceive<FileRequest>(OnFileRequestedV2);
         client.OnMessageReceived<FileRequestMessage>(req => eventQueue.Enqueue(() => OnFileRequested(req)));
     }
 
@@ -63,6 +64,17 @@ public class ConnectionState
         await _fileService.HandleFileRequest(request, this);
     }
 
+    private async Task OnFileRequestedV2(FileRequest request)
+    {
+        if (!Authenticated)
+        {
+            Console.WriteLine($"Unauthenticated client {Endpoint} requested {Path.GetDirectoryName(request.PathRequest)}");
+            return;
+        }
+        
+        await _fileService.HandleFileRequestV2(request, this);
+    }
+    
     private async Task OnCreateUserRequest(UserCreateRequest request)
     {
         if (request.Username == null || request.Password == null)

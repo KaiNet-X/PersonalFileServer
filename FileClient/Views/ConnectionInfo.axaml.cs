@@ -8,7 +8,6 @@ namespace FileClient.Views;
 
 public partial class ConnectionInfo : UserControl
 {
-    
     public ConnectionInfo(ICommand onSignOutCommand)
     {
         InitializeComponent();

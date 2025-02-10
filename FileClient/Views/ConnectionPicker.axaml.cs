@@ -26,7 +26,13 @@ public partial class ConnectionPicker : UserControl
     public ConnectionPicker()
     {
         InitializeComponent();
-        App.ServiceProvider.GetRequiredService<BroadcastReceiverService>().OnServer = OnServerFound;
+        
+        var broadcastReceiver = App.ServiceProvider.GetRequiredService<BroadcastReceiverService>();
+        broadcastReceiver.OnServer = OnServerFound;
+
+        foreach (var address in broadcastReceiver.ServerAddresses)
+            ServerAddresses.Items.Add(address);
+        
         client = App.ServiceProvider.GetRequiredService<Client>();
         DataContext = vm = new ConnectionPickerViewModel(client);
     }

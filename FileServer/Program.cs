@@ -27,7 +27,7 @@ var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(
 , new ServerSettings 
 {
     UseEncryption = true, 
-    ConnectionPollTimeout = 5000,
+    ConnectionPollTimeout = 500000,
     MaxClientConnections = 5,
     ClientRequiresWhitelistedTypes = true
 });
