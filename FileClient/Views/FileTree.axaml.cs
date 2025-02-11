@@ -150,8 +150,8 @@ public partial class FileTree : UserControl
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "explorer",
-                    Arguments = "-R " + FileService.DownloadDirectory
+                    FileName = "open",
+                    Arguments = FileService.DownloadDirectory
                 }
             };
             fileOpener.Start();
