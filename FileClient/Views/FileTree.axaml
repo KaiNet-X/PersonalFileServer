@@ -18,6 +18,7 @@
 				<Button Click="UploadFolder" HorizontalAlignment="Stretch">Upload Folder</Button>
 				<Button Click="Download" HorizontalAlignment="Stretch" IsEnabled="{Binding IsSelected}">Download</Button>
 				<Button Click="Delete" HorizontalAlignment="Stretch" IsEnabled="{Binding IsSelected}">Delete</Button>
+				<Button Click="LaunchFileManager" HorizontalAlignment="Stretch">Open file manager</Button>
 			</StackPanel>
 			<Border Grid.Column="2" Classes="rounded">
 				<TreeView ItemsSource="{Binding Node.SubNodes}" SelectedItem="{Binding SelectedNode}" Background="Transparent">

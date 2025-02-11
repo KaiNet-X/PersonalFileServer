@@ -20,7 +20,7 @@ public class FileService
     private readonly Client client;
     private readonly AuthService authService;
 
-    private readonly string DownloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+    public static readonly string DownloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
     
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<TcpChannel>> requests = new();
     
@@ -32,6 +32,7 @@ public class FileService
         this.authService = authService;
 
         client.OnChannel<TcpChannel>(OnChannelOpened);
+        Directory.CreateDirectory(DownloadDirectory);
     }
 
     private async Task OnChannelOpened(TcpChannel channel)

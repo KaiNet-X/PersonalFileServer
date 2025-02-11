@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Input;
@@ -39,14 +41,16 @@ public partial class FileTree : UserControl
         AvaloniaProperty.RegisterDirect<FileTree, bool>(
             nameof(IsSelected),
             c => c.IsSelected);
-    
-    private readonly AuthService authService;
+
     private readonly FileService fileService;
     private readonly Client client;
+    private IStorageProvider _storageProvider => TopLevel.GetTopLevel(this).StorageProvider;
 
     private Node _node;
     private Node? _selectedNode;
     private bool _isSelected;
+    
+    private bool CanOpenFilePicker { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
     
     public Node Node
     {
@@ -73,20 +77,18 @@ public partial class FileTree : UserControl
     public FileTree()
     {
         InitializeComponent();
-        authService = App.ServiceProvider.GetRequiredService<AuthService>();
+        App.ServiceProvider.GetRequiredService<AuthService>();
         client = App.ServiceProvider.GetRequiredService<Client>();
         fileService = App.ServiceProvider.GetRequiredService<FileService>();
 
         DataContext = this;
         AddHandler(DragDrop.DropEvent, OnDrop);
-        //_nodes = new ObservableCollection<Node>();
     }
 
     public async void UploadFile(object sender, RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
 
-        var picker = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var picker = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             AllowMultiple = true
         });
@@ -98,9 +100,7 @@ public partial class FileTree : UserControl
 
     public async void UploadFolder(object sender, RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
-
-        var picker = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
+        var picker = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
         {
             AllowMultiple = true
         });
@@ -130,6 +130,47 @@ public partial class FileTree : UserControl
         await client.SendObjectAsync(new FileRequest(FileRequestType.Delete, Guid.NewGuid(), GetPath(SelectedNode)));
     }
 
+    public void LaunchFileManager(object sender, RoutedEventArgs e)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var fileOpener = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer",
+                    Arguments = FileService.DownloadDirectory
+                }
+            };
+            fileOpener.Start();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var fileOpener = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer",
+                    Arguments = "-R " + FileService.DownloadDirectory
+                }
+            };
+            fileOpener.Start();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var dbusShowItemsProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "dbus-send",
+                    Arguments = $"--print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file://{FileService.DownloadDirectory}\" string:\"\"",
+                    UseShellExecute = true
+                }
+            };
+            dbusShowItemsProcess.Start();
+        }
+    }
+    
     private string GetPath(Node node)
     {
         var path = node.Title;
