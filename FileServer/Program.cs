@@ -19,7 +19,7 @@ await authService.LoadUsersAsync();
 if (!Directory.Exists(workingDirectory))
     Directory.CreateDirectory(workingDirectory);
 
-var fileService = new FileService(authService, workingDirectory);
+var fileService = new FileService(workingDirectory);
 
 var addresses = await Dns.GetHostAddressesAsync(Dns.GetHostName());
 
@@ -45,6 +45,7 @@ server.Start();
 
 Announcer.Announce();
 
+Console.CancelKeyPress += OnKill;
 AppDomain.CurrentDomain.ProcessExit += OnKill;
 
 foreach (var address in addresses)
@@ -68,6 +69,30 @@ do
         await ConnectionState.ApproveUser(value[8..]);
     else if (lower.StartsWith("reject "))
         await ConnectionState.DenyUser(value[7..]);
+    else if (lower.StartsWith("kick "))
+    {
+        var remaining = lower[5..];
+        if (IPAddress.TryParse(remaining, out var ip))
+            foreach (var connection in ConnectionState.Connections)
+            {
+                if (connection.Client.RemoteEndpoint.Address.Equals(ip))
+                    await connection.Client.CloseAsync();
+            }
+        else
+            foreach (var connection in ConnectionState.Connections.Where(conn => conn.User.Username == value[5..]))
+                await connection.Client.CloseAsync();
+    }
+    else if (lower.StartsWith("delete "))
+    {
+        var username = value[7..];
+
+        foreach (var connection in ConnectionState.Connections.Where(conn => conn.User.Username == username))
+            await connection.Client.CloseAsync();
+        
+        await authService.RemoveUserAsync(username);
+        fileService.RemoveUserDirecory(username);
+    }
+        
     else
     {
         Console.WriteLine("Unknown command. List of available commands are: ");
@@ -76,6 +101,8 @@ do
         Console.WriteLine("requests: lists user creation requests");
         Console.WriteLine("approve [user]: approves a user request");
         Console.WriteLine("reject [user]: rejects a user request");
+        Console.WriteLine("kick [user | ip]: kicks off all connections for a user or an ip address");
+        Console.WriteLine("delete [user]: deletes a user from the server");
     }
 } while (!exiting);
 

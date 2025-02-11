@@ -127,8 +127,10 @@ public partial class MainWindow : Window
     public void NavSignIn(string title)
     {
         Stack.Children.Clear();
-        var signin = new Signin(client);
-        signin.SignInUp = title;
+        var signin = new Signin(client)
+        {
+            SignInUp = title
+        };
         signin.SetValue(Signin.SignInCompleteProperty, SignInComplete);
         Stack.Children.Add(signin);
         UpdateDimensions();

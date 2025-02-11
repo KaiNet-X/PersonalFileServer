@@ -10,17 +10,13 @@ using System.Threading.Tasks;
 
 public class FileService
 {
-    private readonly AuthService authService;
     private readonly string workingDirectory;
     private readonly ConcurrentDictionary<Guid, Stream> OpenFiles = new();
 
     private const int BufferSize = 1024 * 1024;
     
-    public FileService(AuthService authService, string workingDirectory)
+    public FileService(string workingDirectory)
     {
-        ArgumentNullException.ThrowIfNull(authService);
-
-        this.authService = authService;
         this.workingDirectory = workingDirectory;
     }
 
@@ -135,6 +131,13 @@ public class FileService
         {
             Console.WriteLine(e.Message);
         }
+    }
+
+    public void RemoveUserDirecory(string username)
+    {
+        var directory = @$"{workingDirectory}\{username}".PathFormat();
+        if (Directory.Exists(directory))
+            Directory.Delete(directory, true);
     }
 
     private async Task HandleDownloadRequestAsync(FileRequestMessage request, ConnectionState connection, string path)

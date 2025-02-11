@@ -80,6 +80,14 @@ public class AuthService
         users.Add(username, encHash);
     }
 
+    public async Task RemoveUserAsync(string username)
+    {
+        if (!users.ContainsKey(username)) return;
+        
+        users.Remove(username);
+        await SaveUsersAsync();
+    }
+    
     public async Task<bool> CheckUserAsync(string username, byte[] password)
     {
         if (!users.ContainsKey(username)) return false;

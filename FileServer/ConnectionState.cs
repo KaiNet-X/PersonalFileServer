@@ -38,8 +38,7 @@ public class ConnectionState
     {
         if (!await authService.CheckUserAsync(request.Username, request.Password))
         {
-            Console.WriteLine(
-                $"Authentication error on {Client.RemoteEndpoint}, name: {request.Username}");
+            Console.WriteLine($"Authentication error on {Client.RemoteEndpoint}, name: {request.Username}");
             await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
             return;
         }
