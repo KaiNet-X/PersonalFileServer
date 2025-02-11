@@ -6,9 +6,10 @@
              xmlns:vm="using:FileClient.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:ConnectionPickerViewModel"
-             x:Class="FileClient.Views.ConnectionPicker">
+             x:Class="FileClient.Views.ConnectionPicker"
+             Width="200">
   <StackPanel Spacing="10">
-    <Border MaxWidth="200" HorizontalAlignment="Left">
+    <Border Width="200" HorizontalAlignment="Left" Classes="rounded">
         <StackPanel Spacing="10" HorizontalAlignment="Left" Margin="20">
           <TextBlock>Server address</TextBlock>
           <TextBox Name="TextBox" Text="{Binding ServerAddress, Mode=TwoWay}" MinWidth="150" />

@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FileClient.Views.FileTree"
              x:DataType="v:FileTree">
-	<Border DragDrop.AllowDrop="True">
+	<Border DragDrop.AllowDrop="True" Classes="rounded">
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto"/>
@@ -19,7 +19,7 @@
 				<Button Click="Download" HorizontalAlignment="Stretch" IsEnabled="{Binding IsSelected}">Download</Button>
 				<Button Click="Delete" HorizontalAlignment="Stretch" IsEnabled="{Binding IsSelected}">Delete</Button>
 			</StackPanel>
-			<Border Grid.Column="2">
+			<Border Grid.Column="2" Classes="rounded">
 				<TreeView ItemsSource="{Binding Node.SubNodes}" SelectedItem="{Binding SelectedNode}" Background="Transparent">
 					<TreeView.ItemTemplate>
 						<TreeDataTemplate ItemsSource="{Binding SubNodes}">

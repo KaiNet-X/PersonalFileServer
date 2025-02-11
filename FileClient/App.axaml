@@ -13,8 +13,9 @@
         <Style Selector="Window">
             <Setter Property="Background" Value="#dd000000"/>
             <Setter Property="Padding" Value="20"/>
+            <Setter Property="CornerRadius" Value="0"/>
         </Style>
-        <Style Selector="Border">
+        <Style Selector="Border.rounded">
             <Setter Property="Background" Value="#66777777"/>
             <Setter Property="CornerRadius" Value="10"/>
         </Style>
