@@ -98,7 +98,7 @@ public class FileService
         await using (var fileStream = await file.OpenReadAsync())
             memBuf = await Crypto.CompressAsync(fileStream);
         
-        memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey, authService.IV);
+        memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey);
 
         await channel.SendBytesAsync(BitConverter.GetBytes(memBuf.Length));
         await channel.SendBytesAsync(memBuf);
@@ -158,7 +158,7 @@ public class FileService
             
             await client.CloseChannelAsync(channel);
             memory.Seek(0, SeekOrigin.Begin);
-            buffer = await Crypto.DecryptAESAsync(memory, authService.EncKey, authService.IV);
+            buffer = await Crypto.DecryptAESAsync(memory, authService.EncKey);
         }
         
         buffer = await Crypto.DecompressAsync(buffer);

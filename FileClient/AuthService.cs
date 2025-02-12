@@ -13,7 +13,6 @@ public class AuthService
 
     public User? User { get; private set; }
     public byte[]? EncKey { get; private set; }
-    public byte[]? IV { get; private set; }
     
     private static readonly string UserConfig = $"{Directory.GetCurrentDirectory()}/user.bin";
 
@@ -36,7 +35,6 @@ public class AuthService
                 var phash = Convert.FromBase64String(binSerializer.ReadString());
                 User = new User(uname, phash);
                 EncKey = encKey;
-                IV = EncKey[..16];
                 return true;
             }
             catch { }
@@ -48,14 +46,13 @@ public class AuthService
     {
         // Don't want to save the password or first hash on the system or send it to the server
         EncKey = Crypto.Hash(password);
-        IV = EncKey[..16];
         
         User = new User(username, Crypto.Hash(EncKey));
     }
 
     public async Task SaveUserAsync()
     {
-        if (User is null || EncKey is null || IV is null)
+        if (User is null || EncKey is null)
             return;
         
         await using var file = File.Create(UserConfig);
