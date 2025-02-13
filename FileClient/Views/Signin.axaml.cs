@@ -1,10 +1,10 @@
-using Avalonia;
-using Avalonia.Controls;
-using Common;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Common;
+using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
 
 namespace FileClient.Views;

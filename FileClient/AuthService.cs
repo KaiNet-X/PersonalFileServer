@@ -2,9 +2,9 @@
 
 namespace FileClient;
 
-using Common;
 using System.IO;
 using System.Threading.Tasks;
+using Common;
 
 public class AuthService
 {

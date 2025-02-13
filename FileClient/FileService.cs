@@ -1,35 +1,32 @@
-﻿using System.Collections.Concurrent;
-using System.Linq;
-using Avalonia.Platform.Storage;
-using FileClient.Views;
-using Net.Connection.Channels;
+﻿namespace FileClient;
 
-namespace FileClient;
-
-using Common;
 using System;
-using System.Collections.Generic;
-using System.IO.Compression;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
+using Common;
+using Net.Connection.Channels;
 using Net.Connection.Clients.Tcp;
-using System.Threading;
+using Views;
 
 public class FileService
 {
-    private readonly Client client;
-    private readonly AuthService authService;
+    private readonly Client _client;
+    private readonly AuthService _authService;
 
-    private readonly string DownloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+    private readonly string _downloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
     
-    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<TcpChannel>> requests = new();
-    
-    private const int BufferSize = 1024 * 1024;
-    
+    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<TcpChannel>> _requests = new();
+
     public FileService(Client client, AuthService authService)
     {
-        this.client = client;
-        this.authService = authService;
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(authService);
+        
+        _client = client;
+        _authService = authService;
 
         client.OnChannel<TcpChannel>(OnChannelOpened);
     }
@@ -42,40 +39,40 @@ public class FileService
             var read = 0;
             
             while (read < guidBuff.Length)
-                read += await channel.ReceiveToBufferAsync(guidBuff.AsMemory().Slice(read));
+                read += await channel.ReceiveToBufferAsync(guidBuff.AsMemory()[read..]);
             
             var reqId = new Guid(guidBuff);
 
-            if (!requests.TryGetValue(reqId, out var request))
-                await client.CloseChannelAsync(channel);
+            if (!_requests.TryGetValue(reqId, out var request))
+                await _client.CloseChannelAsync(channel);
             else
                 request.SetResult(channel);
         }
         catch
         {
-            await client.CloseChannelAsync(channel);
+            await _client.CloseChannelAsync(channel);
         }
     }
     
     private bool TryAddRequest(Guid requestId, out TaskCompletionSource<TcpChannel> tcs)
     {
         tcs = new TaskCompletionSource<TcpChannel>();
-        return requests.TryAdd(requestId, tcs);
+        return _requests.TryAdd(requestId, tcs);
     }
 
     private async Task<TcpChannel> GetChannelAsync(Guid requestId, TaskCompletionSource<TcpChannel> tcs)
     {
         var channel = await tcs.Task;
-        requests.TryRemove(requestId, out _);
+        _requests.TryRemove(requestId, out _);
         return channel;
     }
 
-    private async Task<TcpChannel> SendRequestAsync(FileRequest request)
+    private async Task<TcpChannel?> SendRequestAsync(FileRequest request)
     {
         if (!TryAddRequest(request.RequestId, out var tcs)) 
             return null;
         
-        await client.SendObjectAsync(request);
+        await _client.SendObjectAsync(request);
         
         var channel = await GetChannelAsync(request.RequestId, tcs);
 
@@ -83,7 +80,7 @@ public class FileService
     }
     
     // TODO: Close channel and request after timeout
-    public async Task UploadFileAsync(IStorageFile file, string path = null)
+    public async Task UploadFileAsync(IStorageFile file, string? path = null)
     {
         var request = new FileRequest(
             FileRequestType.Upload, 
@@ -98,13 +95,13 @@ public class FileService
         await using (var fileStream = await file.OpenReadAsync())
             memBuf = await Crypto.CompressAsync(fileStream);
         
-        memBuf = await Crypto.EncryptAESAsync(memBuf, authService.EncKey);
+        memBuf = await Crypto.EncryptAESAsync(memBuf, _authService.EncKey);
 
         await channel.SendBytesAsync(BitConverter.GetBytes(memBuf.Length));
         await channel.SendBytesAsync(memBuf);
     }
 
-    public async Task UploadFolderAsync(IStorageFolder folder, string path = null)
+    public async Task UploadFolderAsync(IStorageFolder folder, string? path = null)
     {
         var name = folder.Name;
         path = path is not null ? $"{path}{Path.DirectorySeparatorChar}{name}" : name;
@@ -131,6 +128,12 @@ public class FileService
     
     public async Task DownloadFileAsync(string path)
     {
+        var filePath = $"{_downloadDirectory}{Path.DirectorySeparatorChar}{path}";
+
+        var dirName = Path.GetDirectoryName(filePath);
+        if (dirName is null)
+            return;
+        
         var request = new FileRequest(
             FileRequestType.Download, 
             Guid.NewGuid(),
@@ -153,17 +156,17 @@ public class FileService
             while (memory.Position < length)
             {
                 var bytes = await channel.ReceiveBytesAsync();
-                memory.WriteAsync(bytes);
+                await memory.WriteAsync(bytes);
             }
             
-            await client.CloseChannelAsync(channel);
+            await _client.CloseChannelAsync(channel);
             memory.Seek(0, SeekOrigin.Begin);
-            buffer = await Crypto.DecryptAESAsync(memory, authService.EncKey);
+            buffer = await Crypto.DecryptAESAsync(memory, _authService.EncKey);
         }
         
         buffer = await Crypto.DecompressAsync(buffer);
-        var filePath = $@"{DownloadDirectory}{Path.DirectorySeparatorChar}{path}";
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        
+        Directory.CreateDirectory(dirName);
         
         await using (var fileStream = File.Create(filePath))
             await using (var memory = new MemoryStream(buffer))
