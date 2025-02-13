@@ -1,26 +1,23 @@
-﻿using Net.Connection.Channels;
+﻿namespace FileServer;
 
-namespace FileServer;
-
-using Common;
-using Net.Connection.Clients.Tcp;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
+using Common;
+using Net.Connection.Channels;
+using Net.Connection.Clients.Tcp;
 
 public class FileService
 {
-    private readonly string workingDirectory;
-    private readonly ConcurrentDictionary<Guid, Stream> OpenFiles = new();
+    private readonly string _workingDirectory;
 
     private const int BufferSize = 1024 * 1024;
     
     public FileService(string workingDirectory)
     {
-        this.workingDirectory = workingDirectory;
+        _workingDirectory = workingDirectory;
     }
 
-    public async Task SendFile(Stream file, ServerClient client, FileRequestMessage msg)
+    private static async Task SendFile(Stream file, ServerClient client, FileRequestMessage msg)
     {
         const int sendChunkSize = 16384;
 
@@ -28,10 +25,11 @@ public class FileService
 
         var id = Guid.NewGuid();
 
-        byte[] bytes = new byte[file.Length <= sendChunkSize ? file.Length : sendChunkSize];
-        var max = Math.Ceiling(((float)file.Length) / (float)sendChunkSize);
-
-        for (int i = 0; i < max; i++)
+        var bytes = new byte[file.Length <= sendChunkSize ? file.Length : sendChunkSize];
+        var max = file.Length / sendChunkSize;
+        if (file.Length % sendChunkSize != 0) max++;
+        
+        for (var i = 0; i < max; i++)
         {
             var eom = i == max - 1;
 
@@ -41,17 +39,17 @@ public class FileService
                 PathRequest = fileName,
                 RequestId = id,
                 EndOfMessage = eom,
-                FileData = eom ? (i > 0 ? new byte[file.Length - file.Position] : bytes) : bytes
+                FileData = eom ? i > 0 ? new byte[file.Length - file.Position] : bytes : bytes
             };
 
-            await file.ReadAsync(newMsg.FileData);
+            _ = await file.ReadAsync(newMsg.FileData);
             await client.SendMessageAsync(newMsg);
         }
     }
 
     public async Task HandleFileRequest(FileRequestMessage request, ConnectionState connection)
     {
-        var directory = @$"{workingDirectory}\{connection.User.Username}\{request.Directory}".PathFormat();
+        var directory = @$"{_workingDirectory}\{connection.User.Username}\{request.Directory}".PathFormat();
 
         if (directory.Contains("../") || directory.Contains(@"..\"))
         {
@@ -72,7 +70,7 @@ public class FileService
                     await HandleUploadRequestAsync(request, connection, directory, filePath);
                     break;
                 case FileRequestType.Delete:
-                    await HandleDeleteRequestAsync(request, connection, filePath);
+                    HandleDeleteRequest(request, connection, filePath);
                     break;
                 case FileRequestType.Tree:
                     {
@@ -97,7 +95,7 @@ public class FileService
         var requestDirectory = Path.GetDirectoryName(request.PathRequest);
         var requestFileName = Path.GetFileName(request.PathRequest);
         
-        var directory = @$"{workingDirectory}\{connection.User.Username}\{requestDirectory}".PathFormat();
+        var directory = @$"{_workingDirectory}\{connection.User.Username}\{requestDirectory}".PathFormat();
 
         if (directory.Contains("../") || directory.Contains(@"..\"))
         {
@@ -115,7 +113,7 @@ public class FileService
                     await HandleUploadRequestV2Async(request, connection, directory, filePath);
                     break;
                 case FileRequestType.Delete:
-                    await HandleDeleteRequestV2Async(request, connection, filePath);
+                    HandleDeleteRequestV2(request, connection, filePath);
                     break;
                 case FileRequestType.Download:
                     await HandleDownloadRequestV2Async(request, connection, filePath);
@@ -135,12 +133,12 @@ public class FileService
 
     public void RemoveUserDirecory(string username)
     {
-        var directory = @$"{workingDirectory}\{username}".PathFormat();
+        var directory = @$"{_workingDirectory}\{username}".PathFormat();
         if (Directory.Exists(directory))
             Directory.Delete(directory, true);
     }
 
-    private async Task HandleDownloadRequestAsync(FileRequestMessage request, ConnectionState connection, string path)
+    private static async Task HandleDownloadRequestAsync(FileRequestMessage request, ConnectionState connection, string path)
     {
         Console.WriteLine($"{connection.Endpoint} requested {request.PathRequest}");
         await using (var file = File.OpenRead(path))
@@ -150,7 +148,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} downloaded {request.PathRequest}");
     }
     
-    private async Task HandleDownloadRequestV2Async(FileRequest request, ConnectionState connection, string path)
+    private static async Task HandleDownloadRequestV2Async(FileRequest request, ConnectionState connection, string path)
     {
         Console.WriteLine($"{connection.Endpoint} requested {request.PathRequest}");
 
@@ -170,7 +168,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} downloaded {request.PathRequest}");
     }
     
-    private async Task HandleUploadRequestV2Async(FileRequest request, ConnectionState connection, string directory, string filePath)
+    private static async Task HandleUploadRequestV2Async(FileRequest request, ConnectionState connection, string directory, string filePath)
     {
         Directory.CreateDirectory(directory);
         
@@ -201,7 +199,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} uploaded {request.PathRequest}");
     }
 
-    private async Task HandleUploadRequestAsync(FileRequestMessage request, ConnectionState connection, string directory, string filePath)
+    private static async Task HandleUploadRequestAsync(FileRequestMessage request, ConnectionState connection, string directory, string filePath)
     {
         Directory.CreateDirectory(directory);
         await using (FileStream destination = File.Create(filePath))
@@ -211,7 +209,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} uploaded {request.PathRequest}");
     }
 
-    private async Task HandleDeleteRequestAsync(FileRequestMessage request, ConnectionState connection, string filePath)
+    private static void HandleDeleteRequest(FileRequestMessage request, ConnectionState connection, string filePath)
     {
         if (Directory.Exists(filePath))
             Directory.Delete(filePath, true);
@@ -221,7 +219,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} deleted {request.PathRequest}");
     }
     
-    private async Task HandleDeleteRequestV2Async(FileRequest request, ConnectionState connection, string filePath)
+    private static void HandleDeleteRequestV2(FileRequest request, ConnectionState connection, string filePath)
     {
         if (Directory.Exists(filePath))
             Directory.Delete(filePath, true);
@@ -231,7 +229,7 @@ public class FileService
         Console.WriteLine($"{connection.Endpoint} deleted {request.PathRequest}");
     }
     
-    private Tree GetTree(string dir)
+    private static Tree GetTree(string dir)
     {
         dir = dir.PathFormat();
         var tree = new Tree
@@ -252,7 +250,7 @@ public class FileService
     }
 
     private Task SendTree(ServerClient c, string username) {
-        var tree = GetTree(@$"{workingDirectory}\{username}".PathFormat());
+        var tree = GetTree(@$"{_workingDirectory}\{username}".PathFormat());
         return c.SendObjectAsync(tree);
     }
 }

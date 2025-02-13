@@ -1,14 +1,14 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using FileClient.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
-using Net.Connection.Clients.Tcp;
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using FileClient.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Net.Connection.Clients.Tcp;
 
 namespace FileClient.Views;
 

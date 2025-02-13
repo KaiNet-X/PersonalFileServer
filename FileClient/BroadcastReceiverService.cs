@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 public class BroadcastReceiverService : IDisposable
 {
-    private Socket socket;
-    private CancellationTokenSource cts;
+    private readonly Socket _socket;
+    private CancellationTokenSource? _cts;
     
-    public Action<string> OnServer;
+    public Action<string>? OnServer;
     
-    private readonly HashSet<IPAddress> _serverAddresses = new();
+    private readonly HashSet<IPAddress> _serverAddresses = [];
     
     public IEnumerable<string> ServerAddresses => _serverAddresses.Select(addr => addr.MapToIPv4().ToString());
     
@@ -25,31 +25,25 @@ public class BroadcastReceiverService : IDisposable
     
     private BroadcastReceiverService()
     {
-        socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        _socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
     }
 
     public void StartReceive()
     {
-        socket.Bind(new IPEndPoint(IPAddress.Any, 55555));
-        socket.EnableBroadcast = true;
-        cts = new CancellationTokenSource();
-        Task.Factory.StartNew(async () => await ReceiveAsync(cts.Token), cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-    }
-
-    public void StopReceive()
-    {
-        cts.Cancel();
-        cts.Dispose();
+        _socket.Bind(new IPEndPoint(IPAddress.Any, 55555));
+        _socket.EnableBroadcast = true;
+        _cts = new CancellationTokenSource();
+        Task.Factory.StartNew(async () => await ReceiveAsync(_cts.Token), _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
     
     private async Task ReceiveAsync(CancellationToken cancellationToken)
     {
         var receiveBuffer = new byte[13];
-        while (!cts.Token.IsCancellationRequested)
+        while (_cts is { Token.IsCancellationRequested: false })
         {
-            EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-            var result = await socket.ReceiveFromAsync(receiveBuffer.AsMemory(), remoteEP, cancellationToken);
+            var remoteEp = new IPEndPoint(IPAddress.Any, 0);
+            var result = await _socket.ReceiveFromAsync(receiveBuffer.AsMemory(), remoteEp, cancellationToken);
             
             if (Encoding.UTF8.GetString(receiveBuffer) == "KaiNet Server" && result.RemoteEndPoint is IPEndPoint ep)
             {
@@ -62,8 +56,9 @@ public class BroadcastReceiverService : IDisposable
 
     public void Dispose()
     {
-        socket.Close();
-        cts.Cancel();
-        cts.Dispose();
+        GC.SuppressFinalize(this);
+        _socket.Close();
+        _cts?.Cancel();
+        _cts?.Dispose();
     }
 }

@@ -2,13 +2,13 @@ using Net;
 
 namespace FileClient;
 
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Views;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
-using System;
+using Views;
 
 public partial class App : Application
 {

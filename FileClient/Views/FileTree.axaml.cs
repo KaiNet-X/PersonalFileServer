@@ -10,6 +10,9 @@ using Avalonia.Platform.Storage;
 
 namespace FileClient.Views;
 
+using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -17,9 +20,6 @@ using Avalonia.Markup.Xaml;
 using Common;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.IO.Compression;
 
 public partial class FileTree : UserControl
 {

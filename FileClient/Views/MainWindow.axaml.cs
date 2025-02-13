@@ -5,13 +5,13 @@ using Avalonia.Interactivity;
 
 namespace FileClient.Views;
 
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Common;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using ReactiveUI;
 
 public partial class MainWindow : Window

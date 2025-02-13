@@ -1,8 +1,8 @@
-﻿using FileServer;
+﻿using System.Net;
+using FileServer;
 using Net;
 using Net.Connection.Clients.Tcp;
 using Net.Connection.Servers;
-using System.Net;
 using ConnectionState = FileServer.ConnectionState;
 
 // NOTE: This doesn't work for large files. For that, you would have to send the file in multiple segments and reassemble it on the client
@@ -60,7 +60,7 @@ do
     if (lower == "exit")
         exiting = true;
     else if (lower == "users")
-        foreach (var (uname, _) in  authService.Users)
+        foreach (var (uname, _) in authService.Users)
             Console.WriteLine(uname);
     else if (lower == "requests")
         foreach (var username in ConnectionState.CreateRequests.Keys)
