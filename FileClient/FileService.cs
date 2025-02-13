@@ -16,7 +16,7 @@ public class FileService
     private readonly Client _client;
     private readonly AuthService _authService;
     
-    private readonly string _downloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+    public static readonly string DownloadDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
     
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<TcpChannel>> _requests = new();
 
@@ -29,7 +29,7 @@ public class FileService
         _authService = authService;
 
         client.OnChannel<TcpChannel>(OnChannelOpened);
-        Directory.CreateDirectory(_downloadDirectory);
+        Directory.CreateDirectory(DownloadDirectory);
     }
 
     private async Task OnChannelOpened(TcpChannel channel)
@@ -129,7 +129,7 @@ public class FileService
     
     public async Task DownloadFileAsync(string path)
     {
-        var filePath = $"{_downloadDirectory}{Path.DirectorySeparatorChar}{path}";
+        var filePath = $"{DownloadDirectory}{Path.DirectorySeparatorChar}{path}";
 
         var dirName = Path.GetDirectoryName(filePath);
         if (dirName is null)
