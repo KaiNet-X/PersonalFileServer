@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using Net.Connection.Clients.Tcp;
 
 namespace FileClient.ViewModels;
@@ -12,6 +13,7 @@ public class ConnectionPickerViewModel : ViewModelBase
     private Action onConnect = delegate { };
 
     private readonly Client client;
+    private CancellationTokenSource? cts;
     
     public string ServerAddress
     {
@@ -43,7 +45,7 @@ public class ConnectionPickerViewModel : ViewModelBase
             try
             {
                 var addresses = await Dns.GetHostAddressesAsync(ServerAddress);
-                if (addresses.Any())
+                if (addresses.Length != 0)
                     address = addresses.First();
             }
             catch
@@ -58,8 +60,19 @@ public class ConnectionPickerViewModel : ViewModelBase
             Error = "Invalid IP address or Hostname.";
             return;
         }
-        if (await client.ConnectAsync(ServerAddress, 6969, 0, true))
+
+        if (cts is null)
+            cts = new CancellationTokenSource();
+        else
         {
+            await cts.CancelAsync();
+            cts.Dispose();
+            cts = new CancellationTokenSource();
+        }
+        
+        if (await client.ConnectAsync(ServerAddress, 6969, 0, false, cts.Token))
+        {
+            cts.Dispose();
             Error = string.Empty;
             OnConnect?.Invoke();
         }
