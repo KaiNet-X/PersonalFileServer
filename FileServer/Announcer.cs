@@ -11,7 +11,7 @@ public static class Announcer
 {
     private static Timer eventTimer;
     private static Socket socket;
-    
+
     static Announcer()
     {
         socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
@@ -22,9 +22,9 @@ public static class Announcer
 
     public static void Announce()
     {
-        eventTimer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+        eventTimer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2));
     }
-    
+
     private static void AnnounceAsync(object? obj)
     {
         try

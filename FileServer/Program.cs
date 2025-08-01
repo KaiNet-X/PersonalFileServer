@@ -72,11 +72,8 @@ do
     {
         var remaining = lower[5..];
         if (IPAddress.TryParse(remaining, out var ip))
-            foreach (var connection in ConnectionState.Connections)
-            {
-                if (connection.Client.RemoteEndpoint.Address.Equals(ip))
-                    await connection.Client.CloseAsync();
-            }
+            foreach (var connection in ConnectionState.Connections.Where(connection => connection.Client.RemoteEndpoint.Address.Equals(ip)))
+                await connection.Client.CloseAsync();
         else
             foreach (var connection in ConnectionState.Connections.Where(conn => conn.User.Username == value[5..]))
                 await connection.Client.CloseAsync();

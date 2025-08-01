@@ -1,0 +1,7 @@
+﻿services:
+  fileserver:
+    image: fileserver
+    build:
+      context: .
+      dockerfile: FileServer/Dockerfile
+
