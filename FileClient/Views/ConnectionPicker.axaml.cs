@@ -16,32 +16,34 @@ public partial class ConnectionPicker : UserControl
 {
     private ConnectionPickerViewModel vm;
     private readonly Client client;
-    
+
     public Action OnConnect
     {
         get => vm.OnConnect;
         set => vm.OnConnect = value;
     }
-    
+
     public ConnectionPicker()
     {
         InitializeComponent();
-        
+
         var broadcastReceiver = App.ServiceProvider.GetRequiredService<BroadcastReceiverService>();
         broadcastReceiver.OnServer = OnServerFound;
 
         foreach (var address in broadcastReceiver.ServerAddresses)
             ServerAddresses.Items.Add(address);
-        
+
         client = App.ServiceProvider.GetRequiredService<Client>();
         DataContext = vm = new ConnectionPickerViewModel(client);
     }
-    
+
     private void OnServerFound(string address)
     {
         Dispatcher.UIThread.Post(() =>
         {
             ServerAddresses.Items.Add(address);
+            if (ServerAddresses.SelectedIndex < 0)
+                ServerAddresses.SelectedIndex = 0;
         });
     }
 

@@ -7,49 +7,59 @@ namespace FileServer;
 
 public class ConnectionState
 {
-    public static readonly ConcurrentDictionary<string, (ConnectionState connection, UserCreateRequest request)> CreateRequests = new ();
-    private static readonly SemaphoreSlim requestsSemaphore = new(1, 1);
-    
     private static EventQueue eventQueue = new();
-    
+
     public User User { get; private set; }
     public IPEndPoint Endpoint  => Client.RemoteEndpoint;
 
-    private static AuthService authService = AuthService.Instance;
-    
+    private readonly AuthService _authService;
+
     public readonly ServerClient Client;
     private readonly FileService _fileService;
-    
+
     public static List<ConnectionState> Connections { get; } = new();
-    
+
     public bool Authenticated { get; private set; }
-    
-    public ConnectionState(ServerClient client, FileService fileService)
+
+    public ConnectionState(ServerClient client, FileService fileService, AuthService authService)
     {
         Client = client;
         _fileService = fileService;
+        _authService = authService;
         client.OnReceive<AuthenticationRequest>(req => eventQueue.Enqueue(() => OnAuthenticating(req)));
-        client.OnReceive<UserCreateRequest>(req => eventQueue.Enqueue(() => OnCreateUserRequest(req)));
+        client.OnReceive<UserCreateRequest>(req => eventQueue.Enqueue(() => authService.OnCreateUserRequest(req, this)));
         client.OnReceive<FileRequest>(OnFileRequestedV2);
         client.OnMessageReceived<FileRequestMessage>(req => eventQueue.Enqueue(() => OnFileRequested(req)));
     }
 
     private async Task OnAuthenticating(AuthenticationRequest request)
     {
-        if (!await authService.CheckUserAsync(request.Username, request.Password))
+        if (!await _authService.CheckUserAsync(request.Username, request.Password))
         {
             Console.WriteLine($"Authentication error on {Client.RemoteEndpoint}, name: {request.Username}");
             await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
             return;
         }
-        
+
         Client.UnregisterReceive<AuthenticationRequest>();
         Client.UnregisterReceive<UserCreateRequest>();
         await Client.SendObjectAsync(new AuthenticationReply(true, null));
-        
+
         User = new User(request.Username, request.Password);
         Authenticated = true;
         Console.WriteLine($"{Client.RemoteEndpoint} authenticated as {request.Username}");
+    }
+
+    public async Task OnUserCreated(UserCreateRequest request)
+    {
+        Client.UnregisterReceive<AuthenticationRequest>();
+        Client.UnregisterReceive<UserCreateRequest>();
+
+        User = new User(request.Username, request.Password);
+        Authenticated = true;
+        Console.WriteLine($"{Client.RemoteEndpoint} authenticated as {request.Username}");
+
+        await Client.SendObjectAsync(new AuthenticationReply(true, "User approved"));
     }
 
     private async Task OnFileRequested(FileRequestMessage request)
@@ -59,7 +69,7 @@ public class ConnectionState
             Console.WriteLine($"Unauthenticated client {Endpoint} requested {request.Directory}");
             return;
         }
-        
+
         await _fileService.HandleFileRequest(request, this);
     }
 
@@ -70,94 +80,7 @@ public class ConnectionState
             Console.WriteLine($"Unauthenticated client {Endpoint} requested {Path.GetDirectoryName(request.PathRequest)}");
             return;
         }
-        
+
         await _fileService.HandleFileRequestV2(request, this);
-    }
-    
-    private async Task OnCreateUserRequest(UserCreateRequest request)
-    {
-        if (request.Username == null || request.Password == null)
-        {
-            Console.WriteLine($"{Client.RemoteEndpoint.Address} requested a new user: username or password is empty!");
-            await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
-            return;
-        }
-
-        if (authService.Users.ContainsKey(request.Username))
-        {
-            Console.WriteLine($"{Client.RemoteEndpoint.Address} requested a username that already exists!");
-            await Client.SendObjectAsync(new AuthenticationReply(false , "User with that username already exists"));
-            return;
-        }
-
-        try
-        {
-            await requestsSemaphore.WaitAsync();
-            if (CreateRequests.TryGetValue(request.Username, out _))
-            {
-                Console.WriteLine($"{Client.RemoteEndpoint.Address} requested a username pending approval!");
-                await Client.SendObjectAsync(new AuthenticationReply(false , "User with that username under approval"));
-                return;
-            }
-        
-            CreateRequests.TryAdd(request.Username, (this, request));
-            Console.WriteLine($"{Client.RemoteEndpoint.Address} requested a new user: {request.Username}");
-        }
-        finally
-        {
-            requestsSemaphore.Release();
-        }
-    }
-
-    public static async Task DenyUser(string username)
-    {
-        try
-        {
-            await requestsSemaphore.WaitAsync();
-            if (!CreateRequests.Remove(username, out var request))
-            {
-                Console.WriteLine($"No pending request for \"{username}\"");
-                return;
-            }
-            
-            if (request.connection != null)
-            {
-                request.connection.Client.UnregisterReceive<UserCreateRequest>();
-                await request.connection.Client.SendObjectAsync(new AuthenticationReply(false, "Request denied"));
-            }
-        }
-        finally
-        {
-            requestsSemaphore.Release();
-        }
-    }
-
-    public static async Task ApproveUser(string username)
-    {
-        try
-        {
-            await requestsSemaphore.WaitAsync();
-            
-            if (!CreateRequests.Remove(username, out var request))
-            {
-                Console.WriteLine($"No pending request for \"{username}\"");
-                return;
-            }
-
-            await authService.AddUser(request.request.Username, request.request.Password);
-            await authService.SaveUsersAsync();
-        
-            Console.WriteLine($"Added new user: {request.request.Username}");
-        
-            if (request.connection != null)
-            {
-                request.connection.Client.UnregisterReceive<UserCreateRequest>();
-                await request.connection.Client.SendObjectAsync(new AuthenticationReply(false, "Request denied"));
-            }
-        }
-        finally
-        {
-            requestsSemaphore.Release();
-        }
     }
 }

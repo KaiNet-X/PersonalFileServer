@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 public static class Crypto
 {
-    private static readonly Aes _aes = GetAes();
+    private static readonly Aes Aes = GetAes();
 
-    public const ushort KeyLength = 256;
-    public const ushort IvLength = 128;
+    private const ushort KeyLength = 256;
+    private const ushort IvLength = 128;
 
     public static byte[] GenerateRandomKey(ushort keyLength) =>
         RandomNumberGenerator.GetBytes(keyLength);
 
     public static byte[] Hash(byte[] input) =>
-        SHA256.HashData(input);
+        SHA512.HashData(input);
 
     public static byte[] Hash(string input) =>
         Hash(Encoding.UTF8.GetBytes(input));
@@ -32,18 +32,18 @@ public static class Crypto
         return key;
     }
 
-    public static async Task<byte[]> EncryptAESAsync(byte[] input, byte[] key)
+    public static async Task<byte[]> EncryptAesAsync(byte[] input, byte[] key)
     {
         var iv = Guid.NewGuid().ToByteArray()[..16];
-        
+
         await using var ms2 = new MemoryStream();
         await ms2.WriteAsync(iv);
 
         await using (var memoryStream = new MemoryStream())
         {
-            await using (var cryptoStream = new CryptoStream(memoryStream, _aes.CreateEncryptor(key, iv), CryptoStreamMode.Write))
+            await using (var cryptoStream = new CryptoStream(memoryStream, Aes.CreateEncryptor(key[..32], iv), CryptoStreamMode.Write))
             {
-                await cryptoStream.WriteAsync(input, 0, input.Length);
+                await cryptoStream.WriteAsync(input);
                 await cryptoStream.FlushFinalBlockAsync();
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 await memoryStream.CopyToAsync(ms2);
@@ -51,13 +51,13 @@ public static class Crypto
         }
         return ms2.ToArray();
     }
-    
-    public static async Task<byte[]> DecryptAESAsync(Stream input, byte[] key)
+
+    public static async Task<byte[]> DecryptAesAsync(Stream input, byte[] key)
     {
         var iv = new byte[16];
         await input.ReadAsync(iv.AsMemory(0, 16));
         await using var outputStream = new MemoryStream();
-        await using (var cryptoStream = new CryptoStream(input, _aes.CreateDecryptor(key, iv), CryptoStreamMode.Read))
+        await using (var cryptoStream = new CryptoStream(input, Aes.CreateDecryptor(key[..32], iv), CryptoStreamMode.Read))
         {
             await cryptoStream.CopyToAsync(outputStream);
         }
@@ -73,7 +73,7 @@ public static class Crypto
         }
         return memoryStream.ToArray();
     }
-    
+
     public static async Task<byte[]> DecompressAsync(byte[] source)
     {
         await using var memoryStream = new MemoryStream();

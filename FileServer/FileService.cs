@@ -14,7 +14,10 @@ public class FileService
     
     public FileService(string workingDirectory)
     {
-        _workingDirectory = workingDirectory;
+        _workingDirectory = $"{workingDirectory}{Path.DirectorySeparatorChar}Files";
+        
+        if (!Directory.Exists(workingDirectory))
+            Directory.CreateDirectory(workingDirectory);
     }
 
     private static async Task SendFile(Stream file, ServerClient client, FileRequestMessage msg)

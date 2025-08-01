@@ -10,23 +10,22 @@ using ConnectionState = FileServer.ConnectionState;
 Console.Clear();
 
 const int PORT = 6969;
-var workingDirectory = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Files";
+var workingDirectory = Directory.GetCurrentDirectory();
+if (args.Length > 0)
+    workingDirectory = args[0];
 
-var authService = AuthService.Instance;
+var authService = new AuthService(workingDirectory);
 
 await authService.LoadUsersAsync();
-
-if (!Directory.Exists(workingDirectory))
-    Directory.CreateDirectory(workingDirectory);
 
 var fileService = new FileService(workingDirectory);
 
 var addresses = await Dns.GetHostAddressesAsync(Dns.GetHostName());
 
 var server = new TcpServer([new IPEndPoint(IPAddress.Any, PORT), new IPEndPoint(IPAddress.IPv6Any, PORT)]
-, new ServerSettings 
+, new ServerSettings
 {
-    UseEncryption = true, 
+    UseEncryption = true,
     ConnectionPollTimeout = 500000,
     MaxClientConnections = 5,
     ClientRequiresWhitelistedTypes = true
@@ -51,24 +50,24 @@ AppDomain.CurrentDomain.ProcessExit += OnKill;
 foreach (var address in addresses)
     Console.WriteLine($"Hosting on {address}:{PORT}");
 
-bool exiting = false;
+var exiting = false;
 do
 {
     var value = Console.ReadLine();
-    var lower = value.ToLower();
-    
+    var lower = (value ?? string.Empty).ToLower();
+
     if (lower == "exit")
         exiting = true;
     else if (lower == "users")
         foreach (var (uname, _) in authService.Users)
             Console.WriteLine(uname);
     else if (lower == "requests")
-        foreach (var username in ConnectionState.CreateRequests.Keys)
+        foreach (var username in authService.CreateRequests.Keys)
             Console.WriteLine(username);
     else if (lower.StartsWith("approve "))
-        await ConnectionState.ApproveUser(value[8..]);
+        await authService.ApproveUser(value[8..]);
     else if (lower.StartsWith("reject "))
-        await ConnectionState.DenyUser(value[7..]);
+        await authService.DenyUser(value[7..]);
     else if (lower.StartsWith("kick "))
     {
         var remaining = lower[5..];
@@ -88,11 +87,10 @@ do
 
         foreach (var connection in ConnectionState.Connections.Where(conn => conn.User.Username == username))
             await connection.Client.CloseAsync();
-        
+
         await authService.RemoveUserAsync(username);
         fileService.RemoveUserDirecory(username);
     }
-        
     else
     {
         Console.WriteLine("Unknown command. List of available commands are: ");
@@ -107,16 +105,19 @@ do
 } while (!exiting);
 
 await server.ShutDownAsync();
+return;
 
 void OnConnect(ServerClient sc)
 {
-    ConnectionState.Connections.Add(new ConnectionState(sc, fileService));
+    ConnectionState.Connections.Add(new ConnectionState(sc, fileService, authService));
     Console.WriteLine($"{sc.LocalEndpoint} connected");
 }
 
 void OnDisconnect (DisconnectionInfo info, ServerClient sc)
 {
-    ConnectionState.Connections.Remove(ConnectionState.Connections.FirstOrDefault(c => c.Client == sc));
+    var con = ConnectionState.Connections.FirstOrDefault(c => c.Client == sc);
+    if (con != null)
+        ConnectionState.Connections.Remove(con);
     Console.WriteLine($"{sc.LocalEndpoint} {info.Reason}");
 }
 

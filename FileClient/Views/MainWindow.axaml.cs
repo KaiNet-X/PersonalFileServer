@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -19,7 +20,7 @@ public partial class MainWindow : Window
     private readonly Client client;
     private readonly AuthService authService;
     private readonly BroadcastReceiverService broadcastReceiverService;
-    
+
     private FileTree? fileTree = null;
 
     public MainWindow()
@@ -30,7 +31,7 @@ public partial class MainWindow : Window
         client = sp.GetRequiredService<Client>();
         authService = sp.GetRequiredService<AuthService>();
         broadcastReceiverService = sp.GetRequiredService<BroadcastReceiverService>();
-        
+
         client.OnReceive<AuthenticationReply>(OnAuthReply);
         client.OnReceive<Tree>(t =>
         {
@@ -46,7 +47,7 @@ public partial class MainWindow : Window
                 // var nodes = fileTree.GetValue(FileTree.NodesProperty);
                 // nodes.Clear();
                 // nodes.Add(ToNode(t));
-                
+
                 //fileTree.SetValue(FileTree.NodesProperty, new ObservableCollection<Node>([ToNode(t)]));
                 // var nodes = fileTree.GetValue(FileTree.NodesProperty);
                 // if (nodes is null)
@@ -56,7 +57,7 @@ public partial class MainWindow : Window
                 //     DiffNodes(nodes[0], ToNode(t));
             });
         });
-        
+
         broadcastReceiverService.StartReceive();
         Closing += (_, __) => broadcastReceiverService.Dispose();
     }
@@ -72,32 +73,39 @@ public partial class MainWindow : Window
         return;
         var size = new Size();
         Stack.Measure(size);
-        
+
         var h = size.Height;
         var w = size.Width;
         if (Height < h)
             Height = h;
         if (Width < w)
             Width = w;
-        
+
         MinHeight = Stack.DesiredSize.Height;
         MinWidth = Stack.DesiredSize.Width;
-        
+
         //SizeToContent = SizeToContent.Manual;
     }
-    
+
     public async void Connected()
     {
-        Stack.Children.Clear();
-        if (!await authService.TryLoadUserAsync())
-            ShowSignin();
-        else
+        try
         {
-            var user = authService.User.Value;
-            await client.SendObjectAsync(new AuthenticationRequest(user.Username, user.Password));
+            Stack.Children.Clear();
+            if (!await authService.TryLoadUserAsync())
+                ShowSignin();
+            else
+            {
+                var user = authService.User.Value;
+                await client.SendObjectAsync(new AuthenticationRequest(user.Username, user.Password));
+            }
+
+            UpdateDimensions();
         }
-        
-        UpdateDimensions();
+        catch (Exception e)
+        {
+            throw; // TODO handle exception
+        }
     }
 
     private async Task OnAuthReply(AuthenticationReply reply)
@@ -110,11 +118,11 @@ public partial class MainWindow : Window
         }
         else
             ShowSignin();
-        
+
         UpdateDimensions();
     }
 
-    void ShowSignin()
+    private void ShowSignin()
     {
         Dispatcher.UIThread.Post(() =>
         {
@@ -123,8 +131,8 @@ public partial class MainWindow : Window
             Stack.Children.Add(signInUp);
         });
     }
-    
-    public void NavSignIn(string title)
+
+    private void NavSignIn(string title)
     {
         Stack.Children.Clear();
         var signin = new Signin(client)
@@ -135,8 +143,8 @@ public partial class MainWindow : Window
         Stack.Children.Add(signin);
         UpdateDimensions();
     }
-    
-    public async Task SignInComplete()
+
+    private async Task SignInComplete()
     {
         Dispatcher.UIThread.Post(() =>
         {
@@ -152,20 +160,19 @@ public partial class MainWindow : Window
         });
     }
 
-    private Node ToNode(Tree tree)
+    private static Node ToNode(Tree tree)
     {
         if (tree.Nodes.Count == 0)
             return new Node(tree.Value);
 
         var node = new Node(tree.Value);
-        
-        foreach (var child in tree.Nodes)
+
+        foreach (var subNode in tree.Nodes.Select(ToNode))
         {
-            var subNode = ToNode(child);
             subNode.Parent = node;
             node.SubNodes.Add(subNode);
         }
-        
+
         return node;
     }
 
@@ -181,24 +188,20 @@ public partial class MainWindow : Window
         };
         Stack.Children.Add(picker);
     }
-    
-    private void DiffNodes(Node node, Tree tree)
+
+    private static void DiffNodes(Node node, Tree tree)
     {
         var treeSet = new HashSet<string>(tree.Nodes.Select(tn => tn.Value));
         var nodeSet = new HashSet<string>(node.SubNodes.Select(sn => sn.Title));
-        
-        //var treenodes = new HashSet(tree.Nodes)
-        
+
         // Remove deleted nodes
 
-        for (int i = 0; i < node.SubNodes.Count; i++)
+        for (var i = 0; i < node.SubNodes.Count; i++)
         {
             var subNode = node.SubNodes[i];
-            if (!treeSet.Contains(subNode.Title))
-            {
-                node.SubNodes.Remove(subNode);
-                i--;
-            }
+            if (treeSet.Contains(subNode.Title)) continue;
+            node.SubNodes.Remove(subNode);
+            i--;
         }
 
         foreach (var tr in tree.Nodes)
