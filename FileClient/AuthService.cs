@@ -8,8 +8,7 @@ using Common;
 
 public class AuthService
 {
-    private static readonly AuthService _instance = new AuthService();
-    public static AuthService Instance => _instance;
+    public static AuthService Instance { get; } = new();
 
     public User? User { get; private set; }
     public byte[]? EncKey { get; private set; }

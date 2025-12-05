@@ -19,6 +19,7 @@ public class BroadcastReceiverService : IDisposable
     
     private readonly HashSet<IPAddress> _serverAddresses = [];
     
+    public string[] Addresses => _serverAddresses.Select(x => x.ToString()).ToArray();
     public IEnumerable<string> ServerAddresses => _serverAddresses.Select(addr => addr.MapToIPv4().ToString());
     
     public static BroadcastReceiverService Instance { get; } = new();

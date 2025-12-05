@@ -237,7 +237,7 @@ public class FileService
         dir = dir.PathFormat();
         var tree = new Tree
         {
-            Nodes = new List<Tree>()
+            Nodes = []
         };
 
         foreach (var file in Directory.EnumerateFiles(dir))

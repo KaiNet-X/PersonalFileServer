@@ -1,12 +1,13 @@
+using Avalonia.Layout;
+using Avalonia.Media;
+
+namespace FileClient.Views;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Interactivity;
-
-namespace FileClient.Views;
-
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -19,9 +20,8 @@ public partial class MainWindow : Window
 {
     private readonly Client client;
     private readonly AuthService authService;
-    private readonly BroadcastReceiverService broadcastReceiverService;
 
-    private FileTree? fileTree = null;
+    private FileTree? fileTree;
 
     public MainWindow()
     {
@@ -30,36 +30,13 @@ public partial class MainWindow : Window
         var sp = App.ServiceProvider;
         client = sp.GetRequiredService<Client>();
         authService = sp.GetRequiredService<AuthService>();
-        broadcastReceiverService = sp.GetRequiredService<BroadcastReceiverService>();
+        var broadcastReceiverService1 = sp.GetRequiredService<BroadcastReceiverService>();
 
         client.OnReceive<AuthenticationReply>(OnAuthReply);
-        client.OnReceive<Tree>(t =>
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                var rootNode = fileTree.GetValue(FileTree.NodeProperty);
+        client.OnReceive<Tree>(TreeReceived);
 
-                if (rootNode != null)
-                    DiffNodes(rootNode, t);
-                else
-                    fileTree.SetValue(FileTree.NodeProperty, ToNode(t));
-
-                // var nodes = fileTree.GetValue(FileTree.NodesProperty);
-                // nodes.Clear();
-                // nodes.Add(ToNode(t));
-
-                //fileTree.SetValue(FileTree.NodesProperty, new ObservableCollection<Node>([ToNode(t)]));
-                // var nodes = fileTree.GetValue(FileTree.NodesProperty);
-                // if (nodes is null)
-                // else if (nodes.Count == 0)
-                //     nodes.Add(ToNode(t));
-                // else
-                //     DiffNodes(nodes[0], ToNode(t));
-            });
-        });
-
-        broadcastReceiverService.StartReceive();
-        Closing += (_, __) => broadcastReceiverService.Dispose();
+        broadcastReceiverService1.StartReceive();
+        Closing += (_, _) => broadcastReceiverService1.Dispose();
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -68,6 +45,19 @@ public partial class MainWindow : Window
         UpdateDimensions();
     }
 
+    private void TreeReceived(Tree tree)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var rootNode = fileTree.GetValue(FileTree.NodeProperty);
+
+            if (rootNode != null)
+                DiffNodes(rootNode, tree);
+            else
+                fileTree.SetValue(FileTree.NodeProperty, ToNode(tree));
+        });
+    }
+    
     private void UpdateDimensions()
     {
         return;
@@ -110,40 +100,70 @@ public partial class MainWindow : Window
 
     private async Task OnAuthReply(AuthenticationReply reply)
     {
-        if (reply.Result)
+        switch (reply.Result)
         {
-            await authService.SaveUserAsync();
-            await SignInComplete();
-            client.UnregisterReceive<AuthenticationReply>();
+            case AuthenticationResult.Success or AuthenticationResult.Approved:
+                await authService.SaveUserAsync();
+                await SignInComplete();
+                client.UnregisterReceive<AuthenticationReply>();
+                break;
+            case AuthenticationResult.Failure or AuthenticationResult.Rejected:
+                ShowSignin(reply.Reason);
+                break;
         }
-        else
-            ShowSignin();
 
         UpdateDimensions();
     }
 
-    private void ShowSignin()
+    private void ShowSignin(string? errorText = null)
     {
         Dispatcher.UIThread.Post(() =>
         {
-            var signInUp = new SignInOrUp(ReactiveCommand.Create(() => NavSignIn("Sign in")), ReactiveCommand.Create(() => NavSignIn("Sign up")));
+            var signInUp = new SignInOrUp(
+                ReactiveCommand.Create(() => NavSignIn("Sign in", SignIn)),
+                ReactiveCommand.Create(() => NavSignIn("Sign up", SignUp)));
             Stack.Children.Clear();
+            if (errorText is not null)
+                Stack.Children.Add(new TextBlock
+                {
+                    Text = errorText,
+                    Foreground = Brushes.Red
+                });
             Stack.Children.Add(signInUp);
         });
     }
 
-    private void NavSignIn(string title)
+    private void NavSignIn(string text, Func<string, string, Task> signInCommand)
     {
         Stack.Children.Clear();
-        var signin = new Signin(client)
-        {
-            SignInUp = title
-        };
-        signin.SetValue(Signin.SignInCompleteProperty, SignInComplete);
+        var signin = new Signin(client, signInCommand, text);
+        signin.SetValue(Signin.BackProperty, () => ShowSignin());
         Stack.Children.Add(signin);
         UpdateDimensions();
     }
+    
+    public async Task SignIn(string username, string password)
+    {
+        authService.SetUser(username, password);
+        var user = authService.User.Value;
+        
+        await client.SendObjectAsync(new AuthenticationRequest(username, user.Password));
+    }
+    
+    public async Task SignUp(string username, string password)
+    {
+        authService.SetUser(username, password);
+        var user = authService.User.Value;
+        
+        await client.SendObjectAsync(new UserCreateRequest(username, user.Password));
 
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            Stack.Children.Clear();
+            Stack.Children.Add(new WaitForSignup());
+        });
+    }
+    
     private async Task SignInComplete()
     {
         Dispatcher.UIThread.Post(() =>
@@ -157,6 +177,15 @@ public partial class MainWindow : Window
         await client.SendMessageAsync(new FileRequestMessage
         {
             RequestType = FileRequestType.Tree
+        });
+    }
+
+    private async Task SignUp()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            Stack.Children.Clear();
+            Stack.Children.Add(new WaitForSignup());
         });
     }
 
@@ -179,12 +208,16 @@ public partial class MainWindow : Window
     private void SignOut()
     {
         client.Close();
+        
         client.OnReceive<AuthenticationReply>(OnAuthReply);
+        client.OnReceive<Tree>(TreeReceived);
+
         authService.RemoveUser();
         Stack.Children.Clear();
         var picker = new ConnectionPicker
         {
-            OnConnect = Connected
+            OnConnect = Connected,
+            HorizontalAlignment = HorizontalAlignment.Left
         };
         Stack.Children.Add(picker);
     }

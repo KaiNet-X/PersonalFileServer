@@ -1,23 +1,27 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Common;
 using Microsoft.Extensions.DependencyInjection;
 using Net.Connection.Clients.Tcp;
+using ReactiveUI;
 
 namespace FileClient.Views;
 
 public partial class Signin : UserControl
 {
-    public static readonly DirectProperty<Signin, Func<Task>> SignInCompleteProperty =
-        AvaloniaProperty.RegisterDirect<Signin, Func<Task>>(
-            nameof(SignInComplete),
-            c => c.SignInComplete,
-            (c, val) => c.SignInComplete = val,
+    public static readonly DirectProperty<Signin, Action> BackProperty =
+        AvaloniaProperty.RegisterDirect<Signin, Action>(
+            nameof(BackNavigate),
+            c => c.BackNavigate,
+            (c, val) => c.BackNavigate = val,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
-
+    
     public static readonly DirectProperty<Signin, string> UsernameProperty =
         AvaloniaProperty.RegisterDirect<Signin, string>(
             nameof(Username),
@@ -32,32 +36,38 @@ public partial class Signin : UserControl
             (c, val) => c.Password = val,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
-    public string SignInUp { get; set; } = "Sign in";
+    public string SignInUp { get; private set; }
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 
-    private Func<Task>? _signInComplete;
-
-    private readonly Client _client;
+    public Func<string, string, Task>  SignInCommand { get; private set; }
     
-    public Func<Task> SignInComplete
+    private readonly Client _client;
+
+    [field: AllowNull]
+    public Action BackNavigate
     {
-        get => _signInComplete;
-        set => SetAndRaise(SignInCompleteProperty, ref _signInComplete, value);
+        get;
+        set => SetAndRaise(BackProperty, ref field, value);
     }
 
     private readonly AuthService _authService;
 
-    public Signin(Client client)
+    public Signin(Client client, Func<string, string, Task> signInCommand, string signInText)
     {
+        SignInUp = signInText;
         _client = client;
+        SignInCommand = signInCommand;
+        
         InitializeComponent();
+        
         DataContext = this;
         _authService = App.ServiceProvider.GetRequiredService<AuthService>();
     }
 
     public async Task SignIn()
     {
+        await SignInCommand(Username, Password);
         _authService.SetUser(Username, Password);
         var user = _authService.User.Value;
         
@@ -66,13 +76,23 @@ public partial class Signin : UserControl
         else
             await _client.SendObjectAsync(new UserCreateRequest(Username, user.Password));
     }
-
+    
     private async void KeyUp(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Return)
+        try
         {
+            if (e.Key != Key.Return) return;
             Focus();
             await SignIn();
         }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
+
+    private void BackButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        BackNavigate();
     }
 }

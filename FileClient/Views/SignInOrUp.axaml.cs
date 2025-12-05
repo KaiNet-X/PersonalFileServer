@@ -1,5 +1,4 @@
 using System.Windows.Input;
-using Avalonia;
 using Avalonia.Controls;
 
 namespace FileClient.Views;

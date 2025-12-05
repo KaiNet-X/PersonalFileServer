@@ -88,7 +88,7 @@ public class AuthService
             if (request.Connection != null)
             {
                 request.Connection.Client.UnregisterReceive<UserCreateRequest>();
-                await request.Connection.Client.SendObjectAsync(new AuthenticationReply(false, "Request denied"));
+                await request.Connection.Client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Rejected, "Request denied"));
             }
         }
         finally
@@ -131,14 +131,14 @@ public class AuthService
         if (request.Username == null || request.Password == null)
         {
             Console.WriteLine($"{client.RemoteEndpoint.Address} requested a new user: username or password is empty!");
-            await client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
+            await client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Failure, "Username or password is empty"));
             return;
         }
 
         if (Users.ContainsKey(request.Username))
         {
             Console.WriteLine($"{client.RemoteEndpoint.Address} requested a username that already exists!");
-            await client.SendObjectAsync(new AuthenticationReply(false , "User with that username already exists"));
+            await client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Failure , "User with that username already exists"));
             return;
         }
 
@@ -148,7 +148,7 @@ public class AuthService
             if (CreateRequests.TryGetValue(request.Username, out _))
             {
                 Console.WriteLine($"{client.RemoteEndpoint.Address} requested a username pending approval!");
-                await client.SendObjectAsync(new AuthenticationReply(false , "User with that username under approval"));
+                await client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.WaitingForApproval , "User with that username under approval"));
                 return;
             }
 

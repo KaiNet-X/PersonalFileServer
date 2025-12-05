@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -16,7 +17,7 @@ public partial class ConnectionPicker : UserControl
 {
     private ConnectionPickerViewModel vm;
     private readonly Client client;
-
+    
     public Action OnConnect
     {
         get => vm.OnConnect;
@@ -27,6 +28,16 @@ public partial class ConnectionPicker : UserControl
     {
         InitializeComponent();
 
+        var addr = BroadcastReceiverService.Instance.Addresses;
+        foreach (var address in addr)
+            ServerAddresses.Items.Add(address);
+
+        if (addr.Length > 0)
+        {
+            TextBox.Text = addr[0];
+            //ServerAddresses.SelectedIndex = 0;
+        }
+        
         var broadcastReceiver = App.ServiceProvider.GetRequiredService<BroadcastReceiverService>();
         broadcastReceiver.OnServer = OnServerFound;
 

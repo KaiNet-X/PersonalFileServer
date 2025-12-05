@@ -20,8 +20,17 @@
     <TextBox Name="UsernameInput" Text="{Binding Username}" Grid.Column="1" />
     <TextBlock Name="PasswordInput" Text="Password" Grid.Column="0" Grid.Row="1"/>
     <TextBox PasswordChar="*" Text="{Binding Password}" Grid.Column="1" Grid.Row="1" KeyUp="KeyUp"/>
-	<Button Name="SignInButton" Command="{Binding SignIn}" Grid.Row="2">
-		<TextBlock Text="{Binding SignInUp}" />
-	</Button>
+    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
+	    <Button 
+		    Name="SignInButton"
+		    Command="{Binding SignIn}">
+		    <TextBlock Text="{Binding SignInUp}" />
+	    </Button>
+	    <Button 
+		    Name="BackButton" 
+		    Click="BackButton_OnClick">
+		    <TextBlock Text="Back" />
+	    </Button>
+    </StackPanel>
   </Grid>
 </UserControl>

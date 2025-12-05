@@ -37,13 +37,13 @@ public class ConnectionState
         if (!await _authService.CheckUserAsync(request.Username, request.Password))
         {
             Console.WriteLine($"Authentication error on {Client.RemoteEndpoint}, name: {request.Username}");
-            await Client.SendObjectAsync(new AuthenticationReply(false, "Username or password is empty"));
+            await Client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Failure, "Username or password is empty"));
             return;
         }
 
         Client.UnregisterReceive<AuthenticationRequest>();
         Client.UnregisterReceive<UserCreateRequest>();
-        await Client.SendObjectAsync(new AuthenticationReply(true, null));
+        await Client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Success, string.Empty));
 
         User = new User(request.Username, request.Password);
         Authenticated = true;
@@ -59,7 +59,7 @@ public class ConnectionState
         Authenticated = true;
         Console.WriteLine($"{Client.RemoteEndpoint} authenticated as {request.Username}");
 
-        await Client.SendObjectAsync(new AuthenticationReply(true, "User approved"));
+        await Client.SendObjectAsync(new AuthenticationReply(AuthenticationResult.Approved, "User approved"));
     }
 
     private async Task OnFileRequested(FileRequestMessage request)
